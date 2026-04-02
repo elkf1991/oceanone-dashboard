@@ -33,4 +33,10 @@ From the **Ocean One** workspace root (parent of `dashboard/`):
 python3 scripts/build_dashboard_team_js.py
 ```
 
+Optional dry run to another path:
+
+```bash
+python3 scripts/build_dashboard_team_js.py -o /tmp/team.js
+```
+
 Only teammates with `status` not equal to `inactive` are included. Ensure `team/teammates.json` matches who should appear on the org chart before regenerating.
