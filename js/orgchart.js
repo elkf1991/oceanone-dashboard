@@ -9,18 +9,66 @@ const OrgChart = {
    * @param {HTMLElement} container
    */
   render(container) {
+    const viewport = document.createElement("div");
+    viewport.className = "org-chart-viewport";
+
+    const outer = document.createElement("div");
+    outer.className = "org-chart-scale-outer";
+
+    const inner = document.createElement("div");
+    inner.className = "org-chart-scale-inner";
+
     const wrapper = document.createElement("div");
     wrapper.className = "org-chart-container";
 
     const tree = document.createElement("div");
     tree.className = "org-tree";
 
-    // Build the tree recursively starting from root
     const rootLevel = this.buildLevel(ORG_TREE);
     tree.appendChild(rootLevel);
 
     wrapper.appendChild(tree);
-    container.appendChild(wrapper);
+    inner.appendChild(wrapper);
+    outer.appendChild(inner);
+    viewport.appendChild(outer);
+    container.appendChild(viewport);
+
+    this._attachAutoScale(viewport, outer, inner);
+  },
+
+  /**
+   * Scale the tree to fit the viewport (no scrolling). Re-runs on resize.
+   */
+  _attachAutoScale(viewport, outer, inner) {
+    const apply = () => {
+      const chart = inner.querySelector(".org-chart-container");
+      if (!chart) return;
+
+      inner.style.transform = "none";
+      const w = chart.offsetWidth;
+      const h = chart.offsetHeight;
+      if (w < 2 || h < 2) return;
+
+      const padX = 16;
+      const padY = 72;
+      let vw = viewport.clientWidth - padX;
+      let vh = viewport.clientHeight - padY;
+      if (vw < 2 || vh < 2) return;
+
+      const scale = Math.min(vw / w, vh / h, 1);
+      outer.style.width = `${w * scale}px`;
+      outer.style.height = `${h * scale}px`;
+      inner.style.width = `${w}px`;
+      inner.style.height = `${h}px`;
+      inner.style.transform = `scale(${scale})`;
+      inner.style.transformOrigin = "0 0";
+    };
+
+    const run = () => requestAnimationFrame(apply);
+    requestAnimationFrame(() => requestAnimationFrame(run));
+
+    const ro = new ResizeObserver(run);
+    ro.observe(viewport);
   },
 
   /**

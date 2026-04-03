@@ -139,6 +139,7 @@ const App = {
     } else if (hash.startsWith("#member/")) {
       const memberId = hash.split("/")[1];
       this.setActiveNav("orgchart");
+      mainContent.classList.remove("main-content--fit-org");
       MemberDetail.render(mainContent, memberId);
     } else {
       // Default to org chart
@@ -164,6 +165,7 @@ const App = {
    * Render the org chart tab
    */
   renderOrgChart(container) {
+    container.classList.add("main-content--fit-org");
     // Header
     const header = document.createElement("div");
     header.className = "content-header";
