@@ -824,6 +824,72 @@ html, body {
   font-weight: 500;
 }
 
+/* Admin Notes */
+.admin-notes-section {
+  border-top: 2px dashed var(--border);
+}
+
+.admin-notes-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 10px 12px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--text);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  resize: vertical;
+  line-height: 1.6;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.admin-notes-textarea:focus {
+  border-color: var(--ocean-mid);
+}
+
+.admin-notes-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.admin-notes-save-btn {
+  padding: 8px 20px;
+  background: var(--ocean-mid);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+.admin-notes-save-btn:hover {
+  background: var(--ocean-deep);
+}
+
+.admin-notes-save-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.admin-notes-feedback {
+  font-size: 13px;
+}
+
+.admin-notes-feedback.success {
+  color: #16a34a;
+}
+
+.admin-notes-feedback.error {
+  color: #dc2626;
+}
+
 /* ============================================
    Responsive — Mobile
    ============================================ */

@@ -1,44 +1,32 @@
 /**
  * Ocean One Dashboard — App Controller
- * Hash-based SPA router, authentication, sidebar logic
+ * Hash-based SPA router, Supabase authentication, sidebar logic.
  */
 
 const App = {
-  AUTH_KEY: "oceanone_auth",
-  VALID_USER: "admin",
-  VALID_PASS: "oceanone168",
+  // Cached data loaded after login
+  _members:  null,
+  _orgTree:  null,
 
-  /**
-   * Initialize the app
-   */
   init() {
     this.bindEvents();
     this.handleRoute();
   },
 
-  /**
-   * Bind all event listeners
-   */
   bindEvents() {
     // Login form
-    const loginForm = document.getElementById("login-form");
-    loginForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      this.handleLogin();
-    });
+    document.getElementById("login-form")
+      .addEventListener("submit", (e) => { e.preventDefault(); this.handleLogin(); });
 
     // Logout button
-    const logoutBtn = document.getElementById("logout-btn");
-    logoutBtn.addEventListener("click", () => {
-      this.handleLogout();
-    });
+    document.getElementById("logout-btn")
+      .addEventListener("click", () => this.handleLogout());
 
     // Mobile sidebar toggle
-    const sidebarToggle = document.getElementById("sidebar-toggle");
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("sidebar-overlay");
 
-    sidebarToggle.addEventListener("click", () => {
+    document.getElementById("sidebar-toggle").addEventListener("click", () => {
       sidebar.classList.toggle("open");
       overlay.classList.toggle("open");
     });
@@ -48,73 +36,84 @@ const App = {
       overlay.classList.remove("open");
     });
 
-    // Sidebar nav items
     document.querySelectorAll(".nav-item:not(.disabled)").forEach((item) => {
       item.addEventListener("click", () => {
-        // Close mobile sidebar
         sidebar.classList.remove("open");
         overlay.classList.remove("open");
       });
     });
 
-    // Hash change (routing)
-    window.addEventListener("hashchange", () => {
-      this.handleRoute();
-    });
+    // Hash change
+    window.addEventListener("hashchange", () => this.handleRoute());
   },
 
-  /**
-   * Check if user is authenticated
-   */
-  isAuthenticated() {
-    return sessionStorage.getItem(this.AUTH_KEY) === "true";
-  },
-
-  /**
-   * Handle login form submission
-   */
-  handleLogin() {
-    const username = document.getElementById("username").value.trim();
+  async handleLogin() {
+    const email    = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
-    const errorEl = document.getElementById("login-error");
+    const errorEl  = document.querySelector(".login-error");
     const container = document.querySelector(".login-container");
+    const btn       = document.querySelector(".login-btn");
 
-    if (username === this.VALID_USER && password === this.VALID_PASS) {
-      sessionStorage.setItem(this.AUTH_KEY, "true");
-      errorEl.hidden = true;
-      window.location.hash = "#orgchart";
-    } else {
+    btn.disabled = true;
+    btn.textContent = "Logging in...";
+    errorEl.hidden = true;
+
+    let loginError;
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      loginError = error;
+    } catch (e) {
+      loginError = e;
+    }
+
+    btn.disabled = false;
+    btn.textContent = "Login";
+
+    if (loginError) {
       errorEl.hidden = false;
+      errorEl.textContent = loginError.message || "Login failed. Please try again.";
       container.classList.add("login-shake");
       setTimeout(() => container.classList.remove("login-shake"), 400);
+      return;
     }
+
+    // Load data then navigate
+    await this.loadData();
+    window.location.hash = "#orgchart";
   },
 
-  /**
-   * Handle logout
-   */
-  handleLogout() {
-    sessionStorage.removeItem(this.AUTH_KEY);
+  async handleLogout() {
+    await supabase.auth.signOut();
+    this._members = null;
+    this._orgTree = null;
     window.location.hash = "#login";
   },
 
-  /**
-   * Route based on current hash
-   */
-  handleRoute() {
-    const hash = window.location.hash || "#login";
-    const loginPage = document.getElementById("login-page");
-    const dashboardPage = document.getElementById("dashboard-page");
-    const mainContent = document.getElementById("main-content");
+  async loadData() {
+    try {
+      const { members, orgTree } = await DataService.loadAll();
+      this._members  = members;
+      this._orgTree  = orgTree;
+    } catch (err) {
+      console.error("Data load failed:", err);
+    }
+  },
 
-    // Not authenticated → force login
-    if (!this.isAuthenticated() && hash !== "#login") {
+  async handleRoute() {
+    const hash = window.location.hash || "#login";
+    const loginPage     = document.getElementById("login-page");
+    const dashboardPage = document.getElementById("dashboard-page");
+    const mainContent   = document.getElementById("main-content");
+
+    // Check Supabase session
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session && hash !== "#login") {
       window.location.hash = "#login";
       return;
     }
 
-    // Authenticated but on login page → go to dashboard
-    if (this.isAuthenticated() && (hash === "#login" || hash === "" || hash === "#")) {
+    if (session && (hash === "#login" || hash === "" || hash === "#")) {
       window.location.hash = "#orgchart";
       return;
     }
@@ -129,55 +128,43 @@ const App = {
     loginPage.hidden = true;
     dashboardPage.hidden = false;
 
-    // Clear main content
+    // Ensure data is loaded
+    if (!this._members) {
+      mainContent.innerHTML = '<div style="padding:40px;color:var(--text-muted)">Loading...</div>';
+      await this.loadData();
+    }
+
     mainContent.innerHTML = "";
 
-    // Route to correct tab/page
+    if (!this._members) {
+      mainContent.innerHTML =
+        '<div style="padding:40px;color:var(--text-muted)">Could not load team data. Check the browser console and your Supabase connection, then refresh.</div>';
+      return;
+    }
+
     if (hash === "#orgchart" || hash === "#dashboard") {
       this.setActiveNav("orgchart");
-      this.renderOrgChart(mainContent);
+      mainContent.classList.add("main-content--fit-org");
+      const header = document.createElement("div");
+      header.className = "content-header";
+      header.innerHTML = "<h2>Org Chart 組織架構</h2><p>Click on a teammate to view details · 點擊查看詳情</p>";
+      mainContent.appendChild(header);
+      OrgChart.render(mainContent, { members: this._members, orgTree: this._orgTree });
     } else if (hash.startsWith("#member/")) {
       const memberId = hash.split("/")[1];
       this.setActiveNav("orgchart");
       mainContent.classList.remove("main-content--fit-org");
-      MemberDetail.render(mainContent, memberId);
+      MemberDetail.render(mainContent, memberId, this._members);
     } else {
-      // Default to org chart
       window.location.hash = "#orgchart";
     }
   },
 
-  /**
-   * Update active state in sidebar navigation
-   */
   setActiveNav(tab) {
     document.querySelectorAll(".nav-item").forEach((item) => {
-      const itemTab = item.getAttribute("data-tab");
-      if (itemTab === tab) {
-        item.classList.add("active");
-      } else {
-        item.classList.remove("active");
-      }
+      item.classList.toggle("active", item.getAttribute("data-tab") === tab);
     });
-  },
-
-  /**
-   * Render the org chart tab
-   */
-  renderOrgChart(container) {
-    container.classList.add("main-content--fit-org");
-    // Header
-    const header = document.createElement("div");
-    header.className = "content-header";
-    header.innerHTML = "<h2>Org Chart 組織架構</h2><p>Click on a teammate to view details · 點擊查看詳情</p>";
-    container.appendChild(header);
-
-    // Org chart
-    OrgChart.render(container);
   }
 };
 
-// Start the app when DOM is ready
-document.addEventListener("DOMContentLoaded", () => {
-  App.init();
-});
+document.addEventListener("DOMContentLoaded", () => App.init());

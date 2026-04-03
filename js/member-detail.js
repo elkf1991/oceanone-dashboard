@@ -1,6 +1,7 @@
 /**
  * Ocean One Dashboard — Member Detail Page
  * Renders full teammate profile with training, exam, availability, etc.
+ * Training labels: DataService.TRAINING_LIST (defined once in data-service.js).
  */
 
 const MemberDetail = {
@@ -8,11 +9,22 @@ const MemberDetail = {
    * Render member detail page into container
    * @param {HTMLElement} container
    * @param {string} memberId
+   * @param {Object} members  - map of id → member from DataService
    */
-  render(container, memberId) {
-    const member = MEMBERS[memberId];
+  render(container, memberId, members) {
+    if (!members || typeof members !== "object") {
+      container.innerHTML =
+        '<div class="member-detail"><p>Team data is not loaded. Return to Org Chart or refresh the page.</p></div>';
+      return;
+    }
+
+    const id = decodeURIComponent(memberId || "");
+    const member = members[id];
     if (!member) {
-      container.innerHTML = '<div class="member-detail"><p>Member not found.</p></div>';
+      container.innerHTML =
+        '<div class="member-detail"><p>Member not found.</p><p class="remarks-text">ID: ' +
+        this.escapeHtml(id) +
+        "</p></div>";
       return;
     }
 
@@ -51,6 +63,9 @@ const MemberDetail = {
     if (member.remarks) {
       detail.appendChild(this.buildRemarksSection(member));
     }
+
+    // Admin Notes
+    detail.appendChild(this.buildAdminNotesSection(member));
 
     container.appendChild(detail);
   },
@@ -116,6 +131,7 @@ const MemberDetail = {
     const grid = document.createElement("div");
     grid.className = "training-grid";
 
+    const labels = DataService.TRAINING_LIST;
     const allTraining = ["L1", "L2", "L3", "L4", "L5"];
     allTraining.forEach((level) => {
       const item = document.createElement("div");
@@ -128,12 +144,13 @@ const MemberDetail = {
       const nameEl = document.createElement("div");
       nameEl.className = "training-name";
       nameEl.textContent = level;
-      if (TRAINING_LIST[level]) {
-        nameEl.textContent += " — " + TRAINING_LIST[level].name;
+      if (labels[level]) {
+        nameEl.textContent += " — " + labels[level].name;
       }
       info.appendChild(nameEl);
 
-      if (member.trainingCompleted.includes(level)) {
+      const done = (member.trainingCompleted || []).includes(level);
+      if (done) {
         icon.textContent = "✅";
         const detail = document.createElement("div");
         detail.className = "training-detail";
@@ -215,12 +232,14 @@ const MemberDetail = {
       const days = ["Mon", "Tue", "Wed", "Thu", "Fri"];
       days.forEach((day) => {
         const dayEl = document.createElement("div");
-        const value = member.timetable[day] || "—";
+        const raw = member.timetable[day];
+        const value = raw != null && raw !== "" ? String(raw) : "—";
         dayEl.className = "timetable-day";
 
-        if (value.toLowerCase().includes("not available") || value.includes("有其他")) {
+        const lower = value.toLowerCase();
+        if (lower.includes("not available") || value.includes("有其他")) {
           dayEl.className += " not-available";
-        } else if (value.toLowerCase() === "free") {
+        } else if (lower === "free") {
           dayEl.className += " free";
         }
 
@@ -265,7 +284,11 @@ const MemberDetail = {
     const list = document.createElement("div");
     list.className = "accomplishment-list";
 
-    Object.entries(member.accomplishment).forEach(([key, value]) => {
+    const acc =
+      member.accomplishment && typeof member.accomplishment === "object"
+        ? member.accomplishment
+        : {};
+    Object.entries(acc).forEach(([key, value]) => {
       const tag = document.createElement("span");
       tag.className = "accomplishment-tag";
       tag.textContent = key + (value ? ": " + value : "");
@@ -288,6 +311,58 @@ const MemberDetail = {
     text.className = "remarks-text";
     text.textContent = member.remarks;
     section.appendChild(text);
+
+    return section;
+  },
+
+  buildAdminNotesSection(member) {
+    const section = document.createElement("div");
+    section.className = "detail-section admin-notes-section";
+
+    const title = document.createElement("h3");
+    title.textContent = "Admin Notes 管理員備註";
+    section.appendChild(title);
+
+    const textarea = document.createElement("textarea");
+    textarea.className = "admin-notes-textarea";
+    textarea.placeholder = "Add private notes about this teammate...";
+    textarea.value = member.adminNotes || "";
+    section.appendChild(textarea);
+
+    const footer = document.createElement("div");
+    footer.className = "admin-notes-footer";
+
+    const saveBtn = document.createElement("button");
+    saveBtn.className = "admin-notes-save-btn";
+    saveBtn.textContent = "Save Notes";
+    footer.appendChild(saveBtn);
+
+    const feedback = document.createElement("span");
+    feedback.className = "admin-notes-feedback";
+    footer.appendChild(feedback);
+
+    section.appendChild(footer);
+
+    saveBtn.addEventListener("click", async () => {
+      saveBtn.disabled = true;
+      saveBtn.textContent = "Saving...";
+      feedback.textContent = "";
+      feedback.className = "admin-notes-feedback";
+
+      try {
+        await DataService.saveNotes(member.id, textarea.value);
+        member.adminNotes = textarea.value;
+        feedback.textContent = "Saved ✓";
+        feedback.classList.add("success");
+      } catch (err) {
+        feedback.textContent = "Failed to save";
+        feedback.classList.add("error");
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Save Notes";
+        setTimeout(() => { feedback.textContent = ""; feedback.className = "admin-notes-feedback"; }, 3000);
+      }
+    });
 
     return section;
   },
