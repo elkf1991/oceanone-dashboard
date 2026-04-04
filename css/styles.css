@@ -864,6 +864,41 @@ html, body {
   background: var(--ocean-bg-light);
 }
 
+.leads-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.leads-filter-btn {
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.leads-filter-btn:hover {
+  border-color: var(--ocean-mid);
+  color: var(--ocean-mid);
+}
+
+.leads-filter-btn.active {
+  background: var(--ocean-deep);
+  border-color: var(--ocean-deep);
+  color: #fff;
+}
+
+.leads-funnel-wrap {
+  margin-top: 8px;
+  overflow-x: auto;
+}
+
 .leads-loading {
   padding: 40px;
   color: var(--text-muted);

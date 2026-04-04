@@ -1,15 +1,14 @@
 /**
  * Ocean One Dashboard — Job Ad to Interview Tab
- * Reads lead/interview funnel data from Google Sheets via Apps Script Web App.
  *
- * Sheet columns (headers are numeric keys from the spreadsheet):
- *   "52"  = Interview (showed up)
- *   "17"  = Day 1 Training
- *   "10"  = Day 2 Training
- *   "6"   = CDP
- *   "4"   = 邀約 (Referral made)
- *   Values are boolean (checkbox)
- *   Lead Source is injected by the script: "moovup" or "jijis"
+ * Data sources:
+ *   - Google Sheet (via Apps Script) for Lead + Interview stages
+ *   - Supabase teammates table for L1 stage (phone number match)
+ *
+ * Moovup tab columns:
+ *   A(0)=Date  E(4)=Phone  F(5)=Source  M(12)=Interview(bool)
+ * JIJIS tab columns:
+ *   A(0)=Name  B(1)=Phone  I(8)=Confirmed(bool)  L(11)=Interview(bool)
  */
 
 const LEADS_CONFIG = {
@@ -17,20 +16,11 @@ const LEADS_CONFIG = {
   TOKEN: "oceanone_leads_2026",
 };
 
-// Funnel stages in order
-const FUNNEL_STAGES = [
-  { key: null,  label: "Lead"          },
-  { key: "52",  label: "Interview"     },
-  { key: "17",  label: "Day 1 Training"},
-  { key: "10",  label: "Day 2 Training"},
-  { key: "6",   label: "CDP"           },
-  { key: "4",   label: "邀約"          },
-];
-
 const Leads = {
   _cache: null,
+  _activeSource: "All",
 
-  render(container) {
+  render(container, { members }) {
     container.innerHTML = "";
     container.classList.remove("main-content--fit-org");
 
@@ -48,19 +38,61 @@ const Leads = {
     wrapper.appendChild(loading);
     container.appendChild(wrapper);
 
-    this._fetchData().then((rows) => {
+    this._fetchData().then((raw) => {
       loading.remove();
-      if (!rows) {
+      if (!raw) {
         const err = document.createElement("p");
         err.style.cssText = "padding:40px;color:var(--text-muted)";
         err.textContent = "Could not load data. Check the Apps Script URL and token.";
         wrapper.appendChild(err);
         return;
       }
-      wrapper.appendChild(this._renderSummary(rows));
-      wrapper.appendChild(this._renderBySource(rows));
+
+      // Build phone→L1 lookup from Supabase members
+      const l1Map = this._buildL1Map(members);
+
+      // Normalise all rows into unified format
+      const allRows = this._normaliseRows(raw, l1Map);
+
+      // Source filter buttons + funnel area
+      const sources = ["All", ...this._uniqueSources(allRows)];
+      this._activeSource = "All";
+
+      const filterWrap = document.createElement("div");
+      filterWrap.className = "leads-filters";
+
+      const funnelWrap = document.createElement("div");
+      funnelWrap.className = "leads-funnel-wrap";
+
+      const redraw = () => {
+        const filtered = this._activeSource === "All"
+          ? allRows
+          : allRows.filter(r => r.source === this._activeSource);
+        funnelWrap.innerHTML = "";
+        funnelWrap.appendChild(this._renderFunnel(filtered));
+      };
+
+      sources.forEach(src => {
+        const btn = document.createElement("button");
+        btn.className = "leads-filter-btn" + (src === "All" ? " active" : "");
+        btn.textContent = src;
+        btn.addEventListener("click", () => {
+          this._activeSource = src;
+          filterWrap.querySelectorAll(".leads-filter-btn").forEach(b =>
+            b.classList.toggle("active", b.textContent === src)
+          );
+          redraw();
+        });
+        filterWrap.appendChild(btn);
+      });
+
+      wrapper.appendChild(filterWrap);
+      wrapper.appendChild(funnelWrap);
+      redraw();
     });
   },
+
+  // ── Data helpers ──────────────────────────────────────────────────────────
 
   async _fetchData() {
     if (this._cache) return this._cache;
@@ -77,39 +109,78 @@ const Leads = {
     }
   },
 
-  _checked(row, key) {
-    const val = row[key];
-    if (typeof val === "boolean") return val;
-    return String(val).trim().toLowerCase() === "true" || String(val).trim().toLowerCase() === "yes";
+  _buildL1Map(members) {
+    // phone (normalised) → true if L1 completed
+    const map = {};
+    for (const m of Object.values(members || {})) {
+      const phone = this._normalisePhone(m.contact);
+      if (phone) map[phone] = (m.trainingCompleted || []).includes("L1");
+    }
+    return map;
   },
 
-  _countStage(rows, key) {
-    if (!key) return rows.length;
-    return rows.filter(r => this._checked(r, key)).length;
+  _normalisePhone(val) {
+    // Remove spaces, dashes, +852 prefix → 8-digit HK number
+    return String(val || "").replace(/[\s\-]/g, "").replace(/^\+?852/, "");
   },
 
-  // ── Overall funnel ────────────────────────────────────────────────────────
+  _normaliseRows(raw, l1Map) {
+    const rows = [];
 
-  _renderSummary(rows) {
-    const section = document.createElement("div");
-    section.className = "leads-overall";
+    // Moovup rows
+    for (const r of (raw.moovup || [])) {
+      const phone  = this._normalisePhone(r.phone);
+      const hasL1  = r.interview && phone ? l1Map[phone] === true : false;
+      rows.push({
+        source:    r.source || "Moovup",
+        interview: !!r.interview,
+        l1:        hasL1,
+      });
+    }
 
-    const title = document.createElement("h3");
-    title.textContent = "Overall 總覽";
-    section.appendChild(title);
+    // JIJIS rows
+    for (const r of (raw.jijis || [])) {
+      const phone = this._normalisePhone(r.phone);
+      const hasL1 = r.interview && phone ? l1Map[phone] === true : false;
+      rows.push({
+        source:    "JIJIS",
+        interview: !!r.interview,
+        l1:        hasL1,
+      });
+    }
 
-    section.appendChild(this._funnelBlocks(rows));
-    return section;
+    return rows;
   },
 
-  _funnelBlocks(rows) {
+  _uniqueSources(rows) {
+    const seen = new Set();
+    // Moovup sources first, then JIJIS
+    for (const r of rows) if (r.source !== "JIJIS") seen.add(r.source);
+    seen.add("JIJIS");
+    return [...seen];
+  },
+
+  // ── Funnel rendering ──────────────────────────────────────────────────────
+
+  _renderFunnel(rows) {
+    const leads     = rows.length;
+    const interview = rows.filter(r => r.interview).length;
+    const l1        = rows.filter(r => r.l1).length;
+
+    const stages = [
+      { label: "Lead",      count: leads     },
+      { label: "Interview", count: interview },
+      { label: "L1 Training", count: l1      },
+    ];
+
     const wrap = document.createElement("div");
     wrap.className = "training-funnel leads-funnel";
 
-    FUNNEL_STAGES.forEach(({ key, label }, i) => {
-      const count = this._countStage(rows, key);
-      const prev  = i > 0 ? this._countStage(rows, FUNNEL_STAGES[i - 1].key) : null;
-      const pct   = (prev !== null && prev > 0) ? Math.round(count / prev * 100) + "%" : null;
+    stages.forEach(({ label, count }, i) => {
+      const prev = i > 0 ? stages[i - 1].count : null;
+      const pct  = (prev !== null && prev > 0)
+        ? Math.round(count / prev * 100) + "%"
+        : null;
 
       const block = document.createElement("div");
       block.className = "funnel-block";
@@ -119,7 +190,7 @@ const Leads = {
         (pct ? `<div class="funnel-pct">${pct}</div>` : "");
       wrap.appendChild(block);
 
-      if (i < FUNNEL_STAGES.length - 1) {
+      if (i < stages.length - 1) {
         const arrow = document.createElement("div");
         arrow.className = "funnel-arrow";
         arrow.textContent = "→";
@@ -128,71 +199,5 @@ const Leads = {
     });
 
     return wrap;
-  },
-
-  // ── By source table ───────────────────────────────────────────────────────
-
-  _renderBySource(rows) {
-    const section = document.createElement("div");
-    section.className = "leads-by-source";
-
-    const title = document.createElement("h3");
-    title.textContent = "By Lead Source 按渠道";
-    section.appendChild(title);
-
-    // Group rows by Lead Source
-    const sources = {};
-    for (const row of rows) {
-      const src = String(row["Lead Source"] || "Unknown").trim();
-      if (!sources[src]) sources[src] = [];
-      sources[src].push(row);
-    }
-
-    const tableWrap = document.createElement("div");
-    tableWrap.className = "training-table-wrap";
-
-    const table = document.createElement("table");
-    table.className = "training-table leads-source-table";
-
-    // Build header row from stages (skip "Lead" as it's just the total)
-    const stageHeaders = FUNNEL_STAGES.map(s =>
-      `<th class="col-check">${s.label}</th>`
-    ).join("");
-    table.innerHTML = `<thead><tr><th class="col-name">Source</th>${stageHeaders}</tr></thead>`;
-
-    const tbody = document.createElement("tbody");
-    const sourceList = Object.entries(sources).sort((a, b) => b[1].length - a[1].length);
-
-    // Add "Total" row first in order
-    const allEntries = [...sourceList, ["Total", rows]];
-
-    allEntries.forEach(([src, srcRows], idx) => {
-      const isTotal = src === "Total";
-      const tr = document.createElement("tr");
-      if (isTotal) tr.className = "leads-total-row";
-
-      const nameTd = document.createElement("td");
-      nameTd.className = "col-name";
-      nameTd.textContent = isTotal ? "Total" : src;
-      tr.appendChild(nameTd);
-
-      FUNNEL_STAGES.forEach(({ key }, i) => {
-        const count = this._countStage(srcRows, key);
-        const prev  = i > 0 ? this._countStage(srcRows, FUNNEL_STAGES[i - 1].key) : null;
-        const pct   = (prev !== null && prev > 0) ? ` (${Math.round(count / prev * 100)}%)` : "";
-
-        const td = document.createElement("td");
-        td.className = "col-check";
-        td.innerHTML = `${count}<span class="leads-pct">${pct}</span>`;
-        tr.appendChild(td);
-      });
-
-      tbody.appendChild(tr);
-    });
-
-    table.appendChild(tbody);
-    tableWrap.appendChild(table);
-    section.appendChild(tableWrap);
-    return section;
   },
 };

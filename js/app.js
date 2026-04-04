@@ -162,7 +162,7 @@ const App = {
     } else if (hash === "#leads") {
       this.setActiveNav("leads");
       mainContent.classList.remove("main-content--fit-org");
-      Leads.render(mainContent);
+      Leads.render(mainContent, { members: this._members });
     } else {
       window.location.hash = "#orgchart";
     }
