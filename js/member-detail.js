@@ -46,6 +46,9 @@ const MemberDetail = {
     // Training section
     detail.appendChild(this.buildTrainingSection(member));
 
+    // Regular Training section
+    detail.appendChild(this.buildRegularTrainingSection(member));
+
     // Exam section
     detail.appendChild(this.buildExamSection(member));
 
@@ -132,7 +135,7 @@ const MemberDetail = {
     grid.className = "training-grid";
 
     const labels = DataService.TRAINING_LIST;
-    const allTraining = ["L1", "L2", "L3", "L4", "L5"];
+    const allTraining = ["L1", "L2", "L3"];
     allTraining.forEach((level) => {
       const item = document.createElement("div");
       item.className = "training-item";
@@ -176,6 +179,46 @@ const MemberDetail = {
     });
 
     section.appendChild(grid);
+    return section;
+  },
+
+  buildRegularTrainingSection(member) {
+    const section = document.createElement("div");
+    section.className = "detail-section";
+
+    const title = document.createElement("h3");
+    title.textContent = "Weekly Regular Training 每週恆常培訓";
+    section.appendChild(title);
+
+    // Sessions legend
+    const legend = document.createElement("div");
+    legend.className = "regular-sessions-legend";
+    Object.entries(DataService.REGULAR_SESSIONS).forEach(([key, time]) => {
+      const item = document.createElement("div");
+      item.className = "session-legend-item";
+      const label = document.createElement("strong");
+      label.textContent = "Session " + key + ":";
+      item.appendChild(label);
+      item.appendChild(document.createTextNode(" " + time));
+      legend.appendChild(item);
+    });
+    section.appendChild(legend);
+
+    // Availability badge
+    const value = member.regularTraining || "—";
+    const avail = document.createElement("div");
+    const isPending = value.startsWith("Pending");
+    const isDepends = value.startsWith("Depends");
+    avail.className = "regular-training-availability" +
+      (isPending ? " rt-pending" : isDepends ? " rt-depends" : " rt-available");
+
+    const availLabel = document.createElement("span");
+    availLabel.className = "rt-label";
+    availLabel.textContent = "可出席 Session: ";
+    avail.appendChild(availLabel);
+    avail.appendChild(document.createTextNode(value));
+    section.appendChild(avail);
+
     return section;
   },
 

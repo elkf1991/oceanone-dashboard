@@ -792,6 +792,51 @@ html, body {
   font-weight: 500;
 }
 
+/* Regular Training Section */
+.regular-sessions-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.session-legend-item strong {
+  color: var(--ocean-mid);
+}
+
+.regular-training-availability {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.rt-label {
+  font-weight: 400;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.rt-available {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.rt-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.rt-depends {
+  background: var(--ocean-pale);
+  color: var(--ocean-deep);
+}
+
 /* Admin Notes */
 .admin-notes-section {
   border-top: 2px dashed var(--border);

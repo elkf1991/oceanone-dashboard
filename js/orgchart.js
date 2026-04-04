@@ -129,7 +129,7 @@ const OrgChart = {
     trainingRow.appendChild(lbl);
     const badges = document.createElement("div");
     badges.className = "training-badges";
-    ["L1","L2","L3","L4","L5"].forEach((lvl) => {
+    ["L1","L2","L3"].forEach((lvl) => {
       const badge = document.createElement("span");
       badge.className = "training-badge";
       badge.textContent = lvl;
@@ -150,6 +150,10 @@ const OrgChart = {
     if (String(exam.paper3  || "").toLowerCase().includes("passed")) examBits.push("P3 ✓");
     if (String(exam.licence || "").includes("上牌"))                  examBits.push("Licensed ✓");
     if (examBits.length) tip.appendChild(this._tooltipRow("Exam", examBits.join(" · ")));
+
+    if (member.regularTraining) {
+      tip.appendChild(this._tooltipRow("Regular", member.regularTraining));
+    }
 
     if (member.background) {
       tip.appendChild(this._tooltipRow("Background", member.background));

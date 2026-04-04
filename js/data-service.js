@@ -5,14 +5,16 @@
  */
 
 const DataService = {
-  /** Shared labels for L1–L5 (+ 自爆); single definition avoids duplicate `const` across script files. */
   TRAINING_LIST: {
-    L1: { name: "心態 Training", durationHrs: 3 },
-    L2: { name: "Product Training", durationHrs: 2 },
-    L3: { name: "CDP, Career Development Planning", durationHrs: 2, note: "一人一節" },
-    L4: { name: "講 Plan Training", durationHrs: 2 },
-    L5: { name: "邀約 Training", durationHrs: 2 },
-    自爆: { name: "自己買一份儲蓄保險", durationHrs: null }
+    L1: { name: "Intro + 心態 Training",            durationHrs: 3 },
+    L2: { name: "Financial Planning",               durationHrs: 2 },
+    L3: { name: "CDP (Career Development Planning)", durationHrs: 2, note: "一人一節" },
+  },
+
+  REGULAR_SESSIONS: {
+    A: "Mon 09:00–11:00",
+    B: "Wed 15:00–17:00",
+    C: "Fri 15:00–17:00",
   },
 
   /**
@@ -75,7 +77,8 @@ const DataService = {
       availabilityType:   row.availability_type,
       timetable:          row.timetable && typeof row.timetable === "object" ? row.timetable : null,
       remarks:            row.remarks,
-      adminNotes:         row.admin_notes
+      adminNotes:         row.admin_notes,
+      regularTraining:    row.regular_training || null,
     };
   },
 
