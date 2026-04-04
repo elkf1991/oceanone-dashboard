@@ -25,6 +25,14 @@ const SOURCE_MAP = {
   "Moovup (Fortune) (Insurance Intern)": "Moovup (Insurance Intern)",
 };
 const SOURCE_ORDER = ["Moovup (Promoter)", "Moovup (GI)", "Moovup (Insurance Intern)", "JIJIS"];
+const MOOVUP_SOURCES = ["Moovup (Promoter)", "Moovup (GI)", "Moovup (Insurance Intern)"];
+
+// Button rows layout: each inner array is one row
+const FILTER_ROWS = [
+  ["All"],
+  ["Moovup (All)", "Moovup (Promoter)", "Moovup (GI)", "Moovup (Insurance Intern)"],
+  ["JIJIS"],
+];
 
 const Leads = {
   _cache: null,
@@ -65,7 +73,6 @@ const Leads = {
       const allRows = this._normaliseRows(raw, l1Map);
 
       // Source filter buttons + funnel area
-      const sources = ["All", ...this._uniqueSources(allRows)];
       this._activeSource = "All";
 
       const filterWrap = document.createElement("div");
@@ -74,26 +81,34 @@ const Leads = {
       const funnelWrap = document.createElement("div");
       funnelWrap.className = "leads-funnel-wrap";
 
+      const filterRows = () => allRows.filter(r => {
+        if (this._activeSource === "All")           return true;
+        if (this._activeSource === "Moovup (All)")  return MOOVUP_SOURCES.includes(r.source);
+        return r.source === this._activeSource;
+      });
+
       const redraw = () => {
-        const filtered = this._activeSource === "All"
-          ? allRows
-          : allRows.filter(r => r.source === this._activeSource);
         funnelWrap.innerHTML = "";
-        funnelWrap.appendChild(this._renderFunnel(filtered));
+        funnelWrap.appendChild(this._renderFunnel(filterRows()));
       };
 
-      sources.forEach(src => {
-        const btn = document.createElement("button");
-        btn.className = "leads-filter-btn" + (src === "All" ? " active" : "");
-        btn.textContent = src;
-        btn.addEventListener("click", () => {
-          this._activeSource = src;
-          filterWrap.querySelectorAll(".leads-filter-btn").forEach(b =>
-            b.classList.toggle("active", b.textContent === src)
-          );
-          redraw();
+      FILTER_ROWS.forEach(rowBtns => {
+        const rowEl = document.createElement("div");
+        rowEl.className = "leads-filter-row";
+        rowBtns.forEach(src => {
+          const btn = document.createElement("button");
+          btn.className = "leads-filter-btn" + (src === "All" ? " active" : "");
+          btn.textContent = src;
+          btn.addEventListener("click", () => {
+            this._activeSource = src;
+            filterWrap.querySelectorAll(".leads-filter-btn").forEach(b =>
+              b.classList.toggle("active", b.textContent === src)
+            );
+            redraw();
+          });
+          rowEl.appendChild(btn);
         });
-        filterWrap.appendChild(btn);
+        filterWrap.appendChild(rowEl);
       });
 
       wrapper.appendChild(filterWrap);

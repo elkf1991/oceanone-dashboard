@@ -866,9 +866,15 @@ html, body {
 
 .leads-filters {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 8px;
   margin-bottom: 24px;
+}
+
+.leads-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .leads-filter-btn {
