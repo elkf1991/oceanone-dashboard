@@ -313,6 +313,23 @@ const MemberDetail = {
       section.appendChild(text);
     }
 
+    // Timetable photo (if available in images/timetable/)
+    const name = member.displayName;
+    const img = document.createElement("img");
+    img.className = "timetable-photo";
+    img.alt = `${name} timetable`;
+    img.src = `images/timetable/${encodeURIComponent(name)}.jpeg`;
+    img.style.display = "none";
+    img.onload = () => { img.style.display = "block"; };
+    img.onerror = () => {
+      if (!img.dataset.triedPng) {
+        img.dataset.triedPng = "1";
+        img.src = `images/timetable/${encodeURIComponent(name)}.png`;
+      }
+      // stays hidden if .png also fails
+    };
+    section.appendChild(img);
+
     return section;
   },
 

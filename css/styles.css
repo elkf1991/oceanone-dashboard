@@ -744,6 +744,13 @@ html, body {
   gap: 8px;
 }
 
+.timetable-photo {
+  margin-top: 16px;
+  max-width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
 .timetable-day {
   padding: 10px;
   border-radius: 8px;
