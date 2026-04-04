@@ -16,6 +16,16 @@ const LEADS_CONFIG = {
   TOKEN: "oceanone_leads_2026",
 };
 
+// Fixed source mapping and display order
+const SOURCE_MAP = {
+  "Moovup (Topify)":                  "Moovup (Promoter)",
+  "Moovup (OceanOne)":                "Moovup (Promoter)",
+  "Moovup (Fortune)":                 "Moovup (GI)",
+  "Moovup (Fortune) (GI)":            "Moovup (GI)",
+  "Moovup (Fortune) (Insurance Intern)": "Moovup (Insurance Intern)",
+};
+const SOURCE_ORDER = ["Moovup (Promoter)", "Moovup (GI)", "Moovup (Insurance Intern)", "JIJIS"];
+
 const Leads = {
   _cache: null,
   _activeSource: "All",
@@ -131,8 +141,9 @@ const Leads = {
     for (const r of (raw.moovup || [])) {
       const phone  = this._normalisePhone(r.phone);
       const hasL1  = r.interview && phone ? l1Map[phone] === true : false;
+      const source = SOURCE_MAP[r.source] || r.source || "Moovup";
       rows.push({
-        source:    r.source || "Moovup",
+        source,
         interview: !!r.interview,
         l1:        hasL1,
       });
@@ -153,11 +164,8 @@ const Leads = {
   },
 
   _uniqueSources(rows) {
-    const seen = new Set();
-    // Moovup sources first, then JIJIS
-    for (const r of rows) if (r.source !== "JIJIS") seen.add(r.source);
-    seen.add("JIJIS");
-    return [...seen];
+    const present = new Set(rows.map(r => r.source));
+    return SOURCE_ORDER.filter(s => present.has(s));
   },
 
   // ── Funnel rendering ──────────────────────────────────────────────────────
