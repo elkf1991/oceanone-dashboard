@@ -165,7 +165,7 @@ const Training = {
   },
 
   _hasRegular(m) {
-    return !!(m.regularTraining && !m.regularTraining.startsWith("Pending"));
+    return m.regularAttended === true;
   },
 
   // ── Sub-section 2: Regular Training Availability ───────────────────────────

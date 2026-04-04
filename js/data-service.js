@@ -79,6 +79,7 @@ const DataService = {
       remarks:            row.remarks,
       adminNotes:         row.admin_notes,
       regularTraining:    row.regular_training || null,
+      regularAttended:    row.regular_attended === true,
       sortOrder:          row.sort_order ?? null,
     };
   },
