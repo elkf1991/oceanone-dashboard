@@ -792,6 +792,177 @@ html, body {
   font-weight: 500;
 }
 
+/* ============================================
+   Training Page
+   ============================================ */
+
+.training-page {
+  padding: 0 0 40px;
+}
+
+.training-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 0 32px 24px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+
+.training-tab-btn {
+  padding: 8px 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.training-tab-btn:hover {
+  border-color: var(--ocean-mid);
+  color: var(--ocean-mid);
+}
+
+.training-tab-btn.active {
+  background: var(--ocean-mid);
+  border-color: var(--ocean-mid);
+  color: var(--white);
+}
+
+.training-tab-content {
+  padding: 0 32px;
+}
+
+/* Funnel */
+.training-funnel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.funnel-block {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 24px;
+  text-align: center;
+  min-width: 90px;
+  box-shadow: var(--shadow);
+}
+
+.funnel-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
+.funnel-count {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--ocean-deep);
+}
+
+.funnel-arrow {
+  font-size: 20px;
+  color: var(--text-muted);
+}
+
+/* Training Table */
+.training-table-wrap {
+  overflow-x: auto;
+}
+
+.training-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background: var(--white);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.training-table thead tr {
+  background: var(--ocean-deep);
+  color: var(--white);
+}
+
+.training-table th {
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 13px;
+  text-align: center;
+}
+
+.training-table th.col-name {
+  text-align: left;
+  min-width: 140px;
+}
+
+.training-table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.training-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.training-table tbody tr:hover td {
+  background: var(--ocean-pale);
+}
+
+.col-name {
+  text-align: left;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.col-check {
+  text-align: center;
+  color: #16a34a;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.row-inactive td {
+  background: #fef2f2 !important;
+  color: #9f1239;
+}
+
+.row-inactive .col-check {
+  color: #dc2626;
+}
+
+.row-no-session td {
+  background: #fefce8 !important;
+}
+
+.inactive-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 7px;
+  background: #fecaca;
+  color: #991b1b;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.session-time {
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
 /* Regular Training Section */
 .regular-sessions-legend {
   display: flex;
