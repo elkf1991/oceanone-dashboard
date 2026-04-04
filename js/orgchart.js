@@ -94,6 +94,99 @@ const OrgChart = {
     return level;
   },
 
+  _getFloatingTooltip() {
+    let tip = document.getElementById("org-floating-tooltip");
+    if (!tip) {
+      tip = document.createElement("div");
+      tip.id = "org-floating-tooltip";
+      tip.className = "org-tooltip";
+      tip.style.cssText = "position:fixed;display:none;z-index:9999;pointer-events:none;";
+      document.body.appendChild(tip);
+    }
+    return tip;
+  },
+
+  _showTooltip(node, member) {
+    const tip = this._getFloatingTooltip();
+    tip.innerHTML = "";
+
+    // Name
+    const tooltipName = document.createElement("div");
+    tooltipName.className = "tooltip-name";
+    tooltipName.textContent = member.displayName + (member.fullName ? ` (${member.fullName})` : "");
+    tip.appendChild(tooltipName);
+
+    if (member.interviewDate) {
+      tip.appendChild(this._tooltipRow("Interview", member.interviewDate));
+    }
+
+    // Training badges
+    const trainingRow = document.createElement("div");
+    trainingRow.className = "tooltip-row";
+    const lbl = document.createElement("span");
+    lbl.className = "tooltip-label";
+    lbl.textContent = "Training";
+    trainingRow.appendChild(lbl);
+    const badges = document.createElement("div");
+    badges.className = "training-badges";
+    ["L1","L2","L3","L4","L5"].forEach((lvl) => {
+      const badge = document.createElement("span");
+      badge.className = "training-badge";
+      badge.textContent = lvl;
+      const completed = (member.trainingCompleted || []).includes(lvl);
+      const scheduled = (member.trainingScheduled || {})[lvl];
+      badge.classList.add(completed ? "completed" : scheduled ? "scheduled" : "pending");
+      if (completed) badge.textContent += " ✓";
+      if (scheduled && !completed) badge.textContent += " ◷";
+      badges.appendChild(badge);
+    });
+    trainingRow.appendChild(badges);
+    tip.appendChild(trainingRow);
+
+    // Exam highlights
+    const exam = member.exam || {};
+    const examBits = [];
+    if (String(exam.paper1  || "").toLowerCase().includes("passed")) examBits.push("P1 ✓");
+    if (String(exam.paper3  || "").toLowerCase().includes("passed")) examBits.push("P3 ✓");
+    if (String(exam.licence || "").includes("上牌"))                  examBits.push("Licensed ✓");
+    if (examBits.length) tip.appendChild(this._tooltipRow("Exam", examBits.join(" · ")));
+
+    if (member.background) {
+      tip.appendChild(this._tooltipRow("Background", member.background));
+    }
+
+    // Position: show offscreen first to measure size
+    tip.style.display = "block";
+    tip.style.left = "-9999px";
+    tip.style.top  = "-9999px";
+
+    const rect    = node.getBoundingClientRect();
+    const tipW    = tip.offsetWidth;
+    const tipH    = tip.offsetHeight;
+    const margin  = 8;
+    const vw      = window.innerWidth;
+    const vh      = window.innerHeight;
+
+    // Horizontal: centre under the node, clamp to viewport
+    let left = rect.left + rect.width / 2 - tipW / 2;
+    left = Math.max(margin, Math.min(left, vw - tipW - margin));
+
+    // Vertical: prefer below, flip above if not enough room
+    let top = rect.bottom + margin;
+    if (top + tipH > vh - margin) {
+      top = rect.top - tipH - margin;
+    }
+    top = Math.max(margin, top);
+
+    tip.style.left = left + "px";
+    tip.style.top  = top  + "px";
+  },
+
+  _hideTooltip() {
+    const tip = document.getElementById("org-floating-tooltip");
+    if (tip) tip.style.display = "none";
+  },
+
   buildNode(member, isRoot, role, members) {
     const node = document.createElement("div");
     node.className = "org-node" + (isRoot ? " root-node" : "");
@@ -112,65 +205,15 @@ const OrgChart = {
     }
 
     if (!isRoot) {
-      node.appendChild(this.buildTooltip(member));
+      node.addEventListener("mouseenter", () => this._showTooltip(node, member));
+      node.addEventListener("mouseleave", () => this._hideTooltip());
       node.addEventListener("click", () => {
+        this._hideTooltip();
         window.location.hash = "#member/" + member.id;
       });
     }
 
     return node;
-  },
-
-  buildTooltip(member) {
-    const tooltip = document.createElement("div");
-    tooltip.className = "org-tooltip";
-
-    const tooltipName = document.createElement("div");
-    tooltipName.className = "tooltip-name";
-    tooltipName.textContent = member.displayName + (member.fullName ? ` (${member.fullName})` : "");
-    tooltip.appendChild(tooltipName);
-
-    if (member.interviewDate) {
-      tooltip.appendChild(this._tooltipRow("Interview", member.interviewDate));
-    }
-
-    // Training badges
-    const trainingRow = document.createElement("div");
-    trainingRow.className = "tooltip-row";
-    const lbl = document.createElement("span");
-    lbl.className = "tooltip-label";
-    lbl.textContent = "Training";
-    trainingRow.appendChild(lbl);
-
-    const badges = document.createElement("div");
-    badges.className = "training-badges";
-    ["L1","L2","L3","L4","L5"].forEach((lvl) => {
-      const badge = document.createElement("span");
-      badge.className = "training-badge";
-      badge.textContent = lvl;
-      const completed  = (member.trainingCompleted  || []).includes(lvl);
-      const scheduled  = (member.trainingScheduled  || {})[lvl];
-      badge.classList.add(completed ? "completed" : scheduled ? "scheduled" : "pending");
-      if (completed) badge.textContent += " ✓";
-      if (scheduled && !completed) badge.textContent += " ◷";
-      badges.appendChild(badge);
-    });
-    trainingRow.appendChild(badges);
-    tooltip.appendChild(trainingRow);
-
-    // Exam highlights
-    const exam = member.exam || {};
-    const examBits = [];
-    if (String(exam.paper1  || "").toLowerCase().includes("passed")) examBits.push("P1 ✓");
-    if (String(exam.paper3  || "").toLowerCase().includes("passed")) examBits.push("P3 ✓");
-    if (String(exam.licence || "").includes("上牌"))                  examBits.push("Licensed ✓");
-    if (examBits.length) tooltip.appendChild(this._tooltipRow("Exam", examBits.join(" · ")));
-
-    if (member.background) {
-      tooltip.appendChild(this._tooltipRow("Background", member.background));
-    }
-
-    return tooltip;
   },
 
   _tooltipRow(label, value) {

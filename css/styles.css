@@ -538,47 +538,15 @@ html, body {
    ============================================ */
 
 .org-tooltip {
-  position: absolute;
-  bottom: calc(100% + 12px);
-  left: 50%;
-  transform: translateX(-50%);
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 14px 16px;
   box-shadow: 0 8px 30px rgba(13, 59, 92, 0.15);
   white-space: nowrap;
-  z-index: 50;
   pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.15s;
   min-width: 200px;
   text-align: left;
-}
-
-.org-node:hover .org-tooltip {
-  opacity: 1;
-}
-
-/* Arrow */
-.org-tooltip::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 6px solid transparent;
-  border-top-color: var(--white);
-}
-
-.org-tooltip::before {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 7px solid transparent;
-  border-top-color: var(--border);
 }
 
 .tooltip-name {
