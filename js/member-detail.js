@@ -314,15 +314,17 @@ const MemberDetail = {
     }
 
     // Timetable photo from Supabase Storage (private bucket)
-    this._appendTimetablePhoto(section, member.displayName);
+    this._appendTimetablePhoto(section, member.displayName, member.id);
 
     return section;
   },
 
-  async _appendTimetablePhoto(section, displayName) {
-    const extensions = ["jpeg", "png"];
-    for (const ext of extensions) {
-      const filename = `${displayName}.${ext}`;
+  async _appendTimetablePhoto(section, displayName, memberId) {
+    const candidates = [
+      `${displayName}.jpeg`, `${displayName}.png`,
+      `${memberId}.jpeg`,    `${memberId}.png`,
+    ];
+    for (const filename of candidates) {
       const { data, error } = await supabase.storage
         .from("timetables")
         .createSignedUrl(filename, 3600);
