@@ -94,11 +94,16 @@ const Training = {
       { label: "L3",      count: l3  },
       { label: "Regular", count: reg },
     ].forEach(({ label, count }, i, arr) => {
+      const prev = i > 0 ? arr[i - 1].count : null;
+      const pct = (prev !== null && prev > 0)
+        ? Math.round(count / prev * 100) + "%"
+        : null;
       const block = document.createElement("div");
       block.className = "funnel-block";
       block.innerHTML =
         `<div class="funnel-label">${label}</div>` +
-        `<div class="funnel-count">${count}</div>`;
+        `<div class="funnel-count">${count}</div>` +
+        (pct ? `<div class="funnel-pct">${pct}</div>` : "");
       funnel.appendChild(block);
       if (i < arr.length - 1) {
         const arrow = document.createElement("div");

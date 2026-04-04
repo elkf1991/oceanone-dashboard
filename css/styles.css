@@ -870,6 +870,13 @@ html, body {
   color: var(--ocean-deep);
 }
 
+.funnel-pct {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
 .funnel-arrow {
   font-size: 20px;
   color: var(--text-muted);
