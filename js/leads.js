@@ -137,8 +137,8 @@ const Leads = {
 
     for (const r of (raw.moovup || [])) {
       const dateStr        = r.date || "";
-      const pastInterview  = !!r.interview && !!dateStr && dateStr < todayStr;
-      const futureInterview = !!r.interview && !!dateStr && dateStr >= todayStr;
+      const pastInterview   = !!r.interview && !!dateStr && dateStr < todayStr;
+      const futureInterview = !!dateStr && dateStr >= todayStr;   // scheduled, regardless of attendance flag
       const phone          = this._normalisePhone(r.phone);
       const hasL1          = pastInterview && phone ? l1Map[phone] === true : false;
       rows.push({
@@ -162,8 +162,8 @@ const Leads = {
       const iDateStr       = iDate
         ? iDate.toLocaleDateString("en-CA", { timeZone: "Asia/Hong_Kong" })
         : "";
-      const pastInterview  = !!r.interview && !!iDateStr && iDateStr < todayStr;
-      const futureInterview = !!r.interview && !!iDateStr && iDateStr >= todayStr;
+      const pastInterview   = !!r.interview && !!iDateStr && iDateStr < todayStr;
+      const futureInterview = !!iDateStr && iDateStr >= todayStr;  // scheduled, regardless of attendance flag
       const phone          = this._normalisePhone(r.phone);
       const hasL1          = pastInterview && phone ? l1Map[phone] === true : false;
       rows.push({
