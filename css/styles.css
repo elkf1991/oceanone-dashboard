@@ -1004,9 +1004,72 @@ html, body {
   margin-top: 4px;
 }
 
+.funnel-future {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ocean-light);
+  margin-left: 4px;
+}
+
 .funnel-arrow {
   font-size: 20px;
   color: var(--text-muted);
+}
+
+/* Upcoming interviews section */
+.leads-funnel-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.leads-upcoming-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 12px 0;
+}
+
+.leads-upcoming-empty {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin: 0;
+}
+
+.leads-upcoming-wrap {
+  overflow-x: auto;
+}
+
+.leads-upcoming-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 680px;
+}
+
+.leads-upcoming-table th {
+  text-align: left;
+  padding: 8px 12px;
+  background: var(--ocean-pale);
+  color: var(--ocean-deep);
+  font-weight: 600;
+  border-bottom: 2px solid var(--ocean-light);
+  white-space: nowrap;
+}
+
+.leads-upcoming-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.leads-upcoming-table tr:last-child td {
+  border-bottom: none;
+}
+
+.leads-upcoming-table tbody tr:hover td {
+  background: var(--ocean-pale);
 }
 
 /* Training Table */

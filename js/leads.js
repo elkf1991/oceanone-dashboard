@@ -1,14 +1,15 @@
 /**
  * Ocean One Dashboard — Job Ad to Interview Tab
  *
- * Data sources:
- *   - Google Sheet (via Apps Script) for Lead + Interview stages
- *   - Supabase teammates table for L1 stage (phone number match)
+ * Moovup sheet columns:
+ *   A(0)=Date(YYYY-MM-DD)  C(2)=Time  D(3)=Name  E(4)=Phone  F(5)=Source
+ *   G(6)=Age  H(7)=Occupation  M(12)=Interview(bool)
+ * JIJIS sheet columns:
+ *   A(0)=Name  B(1)=Phone  H(7)=InterviewDate  I(8)=Confirmed(bool)  L(11)=Interview(bool)
  *
- * Moovup tab columns:
- *   A(0)=Date  E(4)=Phone  F(5)=Source  M(12)=Interview(bool)
- * JIJIS tab columns:
- *   A(0)=Name  B(1)=Phone  I(8)=Confirmed(bool)  L(11)=Interview(bool)
+ * Interview count = interview=true AND date strictly before today (HKT)
+ * Future count    = interview=true AND date >= today (HKT), shown as (+x), excluded from %
+ * L1              = phone cross-check with Supabase teammates, gated on past interview
  */
 
 const LEADS_CONFIG = {
@@ -16,18 +17,16 @@ const LEADS_CONFIG = {
   TOKEN: "oceanone_leads_2026",
 };
 
-// Fixed source mapping and display order
 const SOURCE_MAP = {
-  "Moovup (Topify)":                  "Moovup (Promoter)",
-  "Moovup (OceanOne)":                "Moovup (Promoter)",
-  "Moovup (Fortune)":                 "Moovup (GI)",
-  "Moovup (Fortune) (GI)":            "Moovup (GI)",
+  "Moovup (Topify)":                     "Moovup (Promoter)",
+  "Moovup (OceanOne)":                   "Moovup (Promoter)",
+  "Moovup (Fortune)":                    "Moovup (GI)",
+  "Moovup (Fortune) (GI)":              "Moovup (GI)",
   "Moovup (Fortune) (Insurance Intern)": "Moovup (Insurance Intern)",
 };
-const SOURCE_ORDER = ["Moovup (Promoter)", "Moovup (GI)", "Moovup (Insurance Intern)", "JIJIS"];
+const SOURCE_ORDER  = ["Moovup (Promoter)", "Moovup (GI)", "Moovup (Insurance Intern)", "JIJIS"];
 const MOOVUP_SOURCES = ["Moovup (Promoter)", "Moovup (GI)", "Moovup (Insurance Intern)"];
 
-// Button rows layout: each inner array is one row
 const FILTER_ROWS = [
   ["All"],
   ["Moovup (All)", "Moovup (Promoter)", "Moovup (GI)", "Moovup (Insurance Intern)"],
@@ -66,13 +65,9 @@ const Leads = {
         return;
       }
 
-      // Build phone→L1 lookup from Supabase members
-      const l1Map = this._buildL1Map(members);
-
-      // Normalise all rows into unified format
+      const l1Map  = this._buildL1Map(members);
       const allRows = this._normaliseRows(raw, l1Map);
 
-      // Source filter buttons + funnel area
       this._activeSource = "All";
 
       const filterWrap = document.createElement("div");
@@ -81,15 +76,15 @@ const Leads = {
       const funnelWrap = document.createElement("div");
       funnelWrap.className = "leads-funnel-wrap";
 
-      const filterRows = () => allRows.filter(r => {
-        if (this._activeSource === "All")           return true;
-        if (this._activeSource === "Moovup (All)")  return MOOVUP_SOURCES.includes(r.source);
+      const getFiltered = () => allRows.filter(r => {
+        if (this._activeSource === "All")          return true;
+        if (this._activeSource === "Moovup (All)") return MOOVUP_SOURCES.includes(r.source);
         return r.source === this._activeSource;
       });
 
       const redraw = () => {
         funnelWrap.innerHTML = "";
-        funnelWrap.appendChild(this._renderFunnel(filterRows()));
+        funnelWrap.appendChild(this._renderFunnel(getFiltered()));
       };
 
       FILTER_ROWS.forEach(rowBtns => {
@@ -117,7 +112,7 @@ const Leads = {
     });
   },
 
-  // ── Data helpers ──────────────────────────────────────────────────────────
+  // ── Data fetching ─────────────────────────────────────────────────────────
 
   async _fetchData() {
     if (this._cache) return this._cache;
@@ -134,8 +129,115 @@ const Leads = {
     }
   },
 
+  // ── Row normalisation ─────────────────────────────────────────────────────
+
+  _normaliseRows(raw, l1Map) {
+    const rows = [];
+    const todayStr = this._todayHKT(); // "YYYY-MM-DD"
+
+    for (const r of (raw.moovup || [])) {
+      const dateStr        = r.date || "";
+      const pastInterview  = !!r.interview && !!dateStr && dateStr < todayStr;
+      const futureInterview = !!r.interview && !!dateStr && dateStr >= todayStr;
+      const phone          = this._normalisePhone(r.phone);
+      const hasL1          = pastInterview && phone ? l1Map[phone] === true : false;
+      rows.push({
+        source:        SOURCE_MAP[r.source] || r.source || "Moovup",
+        rawSource:     r.source || "Moovup",
+        pastInterview,
+        futureInterview,
+        l1:            hasL1,
+        // Detail fields for upcoming table
+        date:          dateStr,
+        time:          r.time || "",
+        name:          r.name || "",
+        rawPhone:      r.phone || "",
+        age:           r.age  || "",
+        occupation:    r.occupation || "",
+      });
+    }
+
+    for (const r of (raw.jijis || [])) {
+      const iDate          = this._parseJijisDate(r.interviewDate);
+      const iDateStr       = iDate
+        ? iDate.toLocaleDateString("en-CA", { timeZone: "Asia/Hong_Kong" })
+        : "";
+      const pastInterview  = !!r.interview && !!iDateStr && iDateStr < todayStr;
+      const futureInterview = !!r.interview && !!iDateStr && iDateStr >= todayStr;
+      const phone          = this._normalisePhone(r.phone);
+      const hasL1          = pastInterview && phone ? l1Map[phone] === true : false;
+      rows.push({
+        source:        "JIJIS",
+        rawSource:     "JIJIS",
+        pastInterview,
+        futureInterview,
+        l1:            hasL1,
+        // Detail fields for upcoming table
+        date:          iDateStr,
+        time:          this._extractTime(r.interviewDate),
+        name:          r.name || "",
+        rawPhone:      r.phone || "",
+        age:           "N/A",
+        occupation:    "學生",
+      });
+    }
+
+    return rows;
+  },
+
+  // ── Date helpers ──────────────────────────────────────────────────────────
+
+  _todayHKT() {
+    return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Hong_Kong" });
+  },
+
+  _parseJijisDate(str) {
+    if (!str) return null;
+    // "YYYY-MM-DD ..." or "YYYY-MM-DD" (Apps Script formatted Date object)
+    if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+      return new Date(str.substring(0, 10) + "T00:00:00+08:00");
+    }
+    // "22-1月-2026 14:30:00"
+    const m1 = str.match(/^(\d{1,2})-(\d{1,2})月-(\d{4})/);
+    if (m1) {
+      const [, dd, mm, yyyy] = m1;
+      return new Date(`${yyyy}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}T00:00:00+08:00`);
+    }
+    // "31/3 14:00" — assume current HKT year
+    const m2 = str.match(/^(\d{1,2})\/(\d{1,2})/);
+    if (m2) {
+      const [, dd, mm] = m2;
+      const yyyy = this._todayHKT().substring(0, 4);
+      return new Date(`${yyyy}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}T00:00:00+08:00`);
+    }
+    // Fallback: Apps Script Date.toString() — "Wed Jan 28 2026 10:30:00 GMT+0800 (Hong Kong Standard Time)"
+    // JavaScript's Date constructor parses this format natively and the GMT offset is respected.
+    const fallback = new Date(str);
+    if (!isNaN(fallback.getTime())) return fallback;
+    return null;
+  },
+
+  // Extract "HH:MM" from a JIJIS interviewDate string
+  _extractTime(str) {
+    if (!str) return "";
+    // "YYYY-MM-DD HH:MM" or "22-1月-2026 14:30:00" or "31/3 14:00"
+    const m = String(str).match(/\s(\d{1,2}):(\d{2})/);
+    if (m) return `${m[1].padStart(2, "0")}:${m[2]}`;
+    return "";
+  },
+
+  // "YYYY-MM-DD" → "Mon" / "Tue" / …
+  _dayOfWeek(dateStr) {
+    if (!dateStr) return "";
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const d = new Date(dateStr + "T12:00:00+08:00");
+    if (isNaN(d.getTime())) return "";
+    return days[d.getDay()];
+  },
+
+  // ── Phone helpers ─────────────────────────────────────────────────────────
+
   _buildL1Map(members) {
-    // phone (normalised) → true if L1 completed
     const map = {};
     for (const m of Object.values(members || {})) {
       const phone = this._normalisePhone(m.contact);
@@ -145,63 +247,32 @@ const Leads = {
   },
 
   _normalisePhone(val) {
-    // Remove spaces, dashes, +852 prefix → 8-digit HK number
     return String(val || "").replace(/[\s\-]/g, "").replace(/^\+?852/, "");
-  },
-
-  _normaliseRows(raw, l1Map) {
-    const rows = [];
-
-    // Moovup rows
-    for (const r of (raw.moovup || [])) {
-      const phone  = this._normalisePhone(r.phone);
-      const hasL1  = r.interview && phone ? l1Map[phone] === true : false;
-      const source = SOURCE_MAP[r.source] || r.source || "Moovup";
-      rows.push({
-        source,
-        interview: !!r.interview,
-        l1:        hasL1,
-      });
-    }
-
-    // JIJIS rows
-    for (const r of (raw.jijis || [])) {
-      const phone = this._normalisePhone(r.phone);
-      const hasL1 = r.interview && phone ? l1Map[phone] === true : false;
-      rows.push({
-        source:    "JIJIS",
-        interview: !!r.interview,
-        l1:        hasL1,
-      });
-    }
-
-    return rows;
-  },
-
-  _uniqueSources(rows) {
-    const present = new Set(rows.map(r => r.source));
-    return SOURCE_ORDER.filter(s => present.has(s));
   },
 
   // ── Funnel rendering ──────────────────────────────────────────────────────
 
   _renderFunnel(rows) {
-    const leads     = rows.length;
-    const interview = rows.filter(r => r.interview).length;
-    const l1        = rows.filter(r => r.l1).length;
+    const leads           = rows.length;
+    const pastInterviews  = rows.filter(r => r.pastInterview).length;
+    const futureInterviews = rows.filter(r => r.futureInterview).length;
+    const l1              = rows.filter(r => r.l1).length;
 
     const stages = [
-      { label: "Lead",      count: leads     },
-      { label: "Interview", count: interview },
-      { label: "L1 Training", count: l1      },
+      { label: "Lead",         count: leads,          future: null,              prev: null           },
+      { label: "Interview",    count: pastInterviews, future: futureInterviews,  prev: leads          },
+      { label: "L1 Training",  count: l1,             future: null,              prev: pastInterviews },
     ];
 
     const wrap = document.createElement("div");
-    wrap.className = "training-funnel leads-funnel";
+    wrap.className = "leads-funnel-inner";
 
-    stages.forEach(({ label, count }, i) => {
-      const prev = i > 0 ? stages[i - 1].count : null;
-      const pct  = (prev !== null && prev > 0)
+    // ── Funnel blocks ────────────────────────────────────────────────────────
+    const funnelBlocks = document.createElement("div");
+    funnelBlocks.className = "training-funnel leads-funnel";
+
+    stages.forEach(({ label, count, future, prev }, i) => {
+      const pct = (prev !== null && prev > 0)
         ? Math.round(count / prev * 100) + "%"
         : null;
 
@@ -209,18 +280,87 @@ const Leads = {
       block.className = "funnel-block";
       block.innerHTML =
         `<div class="funnel-label">${label}</div>` +
-        `<div class="funnel-count">${count}</div>` +
+        `<div class="funnel-count">${count}` +
+        (future ? `<span class="funnel-future">(+${future})</span>` : "") +
+        `</div>` +
         (pct ? `<div class="funnel-pct">${pct}</div>` : "");
-      wrap.appendChild(block);
+      funnelBlocks.appendChild(block);
 
       if (i < stages.length - 1) {
         const arrow = document.createElement("div");
         arrow.className = "funnel-arrow";
         arrow.textContent = "→";
-        wrap.appendChild(arrow);
+        funnelBlocks.appendChild(arrow);
       }
     });
 
+    wrap.appendChild(funnelBlocks);
+
+    // ── Upcoming interviews table ─────────────────────────────────────────────
+    const upcoming = rows
+      .filter(r => r.futureInterview)
+      .sort((a, b) => {
+        const dateComp = (a.date || "").localeCompare(b.date || "");
+        if (dateComp !== 0) return dateComp;
+        return (a.time || "").localeCompare(b.time || "");
+      });
+
+    const section = document.createElement("div");
+    section.className = "leads-upcoming";
+
+    const heading = document.createElement("h3");
+    heading.className = "leads-upcoming-title";
+    heading.textContent = "Upcoming Interviews";
+    section.appendChild(heading);
+
+    if (upcoming.length === 0) {
+      const empty = document.createElement("p");
+      empty.className = "leads-upcoming-empty";
+      empty.textContent = "No upcoming interviews.";
+      section.appendChild(empty);
+    } else {
+      const tableWrap = document.createElement("div");
+      tableWrap.className = "leads-upcoming-wrap";
+
+      const table = document.createElement("table");
+      table.className = "leads-upcoming-table";
+
+      const thead = table.createTHead();
+      const hrow  = thead.insertRow();
+      ["Date", "Day", "Time", "Name", "Phone", "Source", "Age", "Occupation"].forEach(col => {
+        const th = document.createElement("th");
+        th.textContent = col;
+        hrow.appendChild(th);
+      });
+
+      const tbody = table.createTBody();
+      upcoming.forEach(r => {
+        const tr = tbody.insertRow();
+        [
+          r.date       || "—",
+          this._dayOfWeek(r.date) || "—",
+          r.time       || "—",
+          r.name       || "—",
+          r.rawPhone   || "—",
+          r.rawSource  || "—",
+          r.age        || "—",
+          r.occupation || "—",
+        ].forEach(val => {
+          const td = tr.insertCell();
+          td.textContent = val;
+        });
+      });
+
+      tableWrap.appendChild(table);
+      section.appendChild(tableWrap);
+    }
+
+    wrap.appendChild(section);
     return wrap;
+  },
+
+  _uniqueSources(rows) {
+    const present = new Set(rows.map(r => r.source));
+    return SOURCE_ORDER.filter(s => present.has(s));
   },
 };
