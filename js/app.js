@@ -159,6 +159,10 @@ const App = {
       this.setActiveNav("training");
       mainContent.classList.remove("main-content--fit-org");
       Training.render(mainContent, { members: this._members, orgTree: this._orgTree });
+    } else if (hash === "#leads") {
+      this.setActiveNav("leads");
+      mainContent.classList.remove("main-content--fit-org");
+      Leads.render(mainContent);
     } else {
       window.location.hash = "#orgchart";
     }
