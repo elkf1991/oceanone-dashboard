@@ -77,6 +77,61 @@ const MemberDetail = {
     const header = document.createElement("div");
     header.className = "member-header";
 
+    // ── Status dropdown (top-right corner) ──────────────────────────────────
+    const statusWrap = document.createElement("div");
+    statusWrap.className = "member-status-wrap";
+
+    const statusLabel = document.createElement("span");
+    statusLabel.className = "member-status-label";
+    statusLabel.textContent = "狀態:";
+    statusWrap.appendChild(statusLabel);
+
+    const statusSelect = document.createElement("select");
+    statusSelect.className = "member-status-select";
+    const statusOptions = [
+      { value: "",       label: "—"      },
+      { value: "Good",   label: "Good"   },
+      { value: "Normal", label: "Normal" },
+      { value: "Bad",    label: "Bad"    },
+    ];
+    statusOptions.forEach(({ value, label }) => {
+      const opt = document.createElement("option");
+      opt.value = value;
+      opt.textContent = label;
+      if ((member.status || "") === value) opt.selected = true;
+      statusSelect.appendChild(opt);
+    });
+
+    // Apply colour class immediately and on change
+    const applyStatusClass = (val) => {
+      statusSelect.className = "member-status-select" +
+        (val === "Good" ? " status-good" : val === "Normal" ? " status-normal" : val === "Bad" ? " status-bad" : "");
+    };
+    applyStatusClass(member.status || "");
+
+    const statusFeedback = document.createElement("span");
+    statusFeedback.className = "member-status-feedback";
+
+    statusSelect.addEventListener("change", async () => {
+      const val = statusSelect.value;
+      applyStatusClass(val);
+      statusFeedback.textContent = "";
+      try {
+        await DataService.saveStatus(member.id, val || null);
+        member.status = val || null;
+        statusFeedback.textContent = "✓";
+        statusFeedback.className = "member-status-feedback success";
+        setTimeout(() => { statusFeedback.textContent = ""; statusFeedback.className = "member-status-feedback"; }, 2000);
+      } catch {
+        statusFeedback.textContent = "✗";
+        statusFeedback.className = "member-status-feedback error";
+      }
+    });
+
+    statusWrap.appendChild(statusSelect);
+    statusWrap.appendChild(statusFeedback);
+    header.appendChild(statusWrap);
+
     const name = document.createElement("div");
     name.className = "member-name";
     name.textContent = member.displayName;

@@ -54,6 +54,17 @@ const DataService = {
   },
 
   /**
+   * Save 狀態 (status) for a teammate.
+   */
+  async saveStatus(memberId, status) {
+    const { error } = await supabase
+      .from("teammates")
+      .update({ status })
+      .eq("id", memberId);
+    if (error) throw new Error(error.message);
+  },
+
+  /**
    * Normalise a Supabase row into the shape the UI expects
    * (camelCase, same as the old team.js format).
    */
@@ -81,6 +92,7 @@ const DataService = {
       regularTraining:    row.regular_training || null,
       regularAttended:    row.regular_attended === true,
       sortOrder:          row.sort_order ?? null,
+      status:             row.status || null,
     };
   },
 

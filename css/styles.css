@@ -533,6 +533,28 @@ html, body {
   margin-top: 2px;
 }
 
+/* Org chart — status colours */
+.org-node.node-status-good {
+  border-color: #16a34a;
+  border-width: 2px;
+  background: #f0fdf4;
+}
+.org-node.node-status-good .node-name { color: #15803d; }
+
+.org-node.node-status-normal {
+  border-color: #ca8a04;
+  border-width: 2px;
+  background: #fefce8;
+}
+.org-node.node-status-normal .node-name { color: #a16207; }
+
+.org-node.node-status-bad {
+  border-color: #dc2626;
+  border-width: 2px;
+  background: #fef2f2;
+}
+.org-node.node-status-bad .node-name { color: #b91c1c; }
+
 /* ============================================
    Org Chart — Hover Tooltip
    ============================================ */
@@ -636,7 +658,54 @@ html, body {
   padding: 24px;
   box-shadow: var(--shadow);
   margin-bottom: 20px;
+  position: relative;
 }
+
+/* Status dropdown — top-right of header card */
+.member-status-wrap {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.member-status-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.member-status-select {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 20px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 8px;
+}
+
+.member-status-select.status-good   { border-color: #16a34a; color: #15803d; background-color: #f0fdf4; }
+.member-status-select.status-normal { border-color: #ca8a04; color: #a16207; background-color: #fefce8; }
+.member-status-select.status-bad    { border-color: #dc2626; color: #b91c1c; background-color: #fef2f2; }
+
+.member-status-feedback {
+  font-size: 12px;
+  font-weight: 600;
+}
+.member-status-feedback.success { color: #16a34a; }
+.member-status-feedback.error   { color: #dc2626; }
 
 .member-name {
   font-size: 24px;

@@ -193,7 +193,14 @@ const OrgChart = {
 
   buildNode(member, isRoot, role, members) {
     const node = document.createElement("div");
-    node.className = "org-node" + (isRoot ? " root-node" : "");
+    let cls = "org-node" + (isRoot ? " root-node" : "");
+    if (!isRoot && member.status) {
+      cls += member.status === "Good"   ? " node-status-good"
+           : member.status === "Normal" ? " node-status-normal"
+           : member.status === "Bad"    ? " node-status-bad"
+           : "";
+    }
+    node.className = cls;
     node.setAttribute("data-id", member.id);
 
     const name = document.createElement("div");
