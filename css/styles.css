@@ -1171,6 +1171,7 @@ html, body {
 .training-table th.col-name {
   text-align: left;
   min-width: 140px;
+  color: var(--white);
 }
 
 .training-table td {
