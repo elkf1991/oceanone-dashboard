@@ -1193,6 +1193,17 @@ html, body {
   color: var(--text);
 }
 
+.table-name-link {
+  color: var(--ocean-mid);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.table-name-link:hover {
+  text-decoration: underline;
+  color: var(--ocean-deep);
+}
+
 .col-check {
   text-align: center;
   color: #16a34a;

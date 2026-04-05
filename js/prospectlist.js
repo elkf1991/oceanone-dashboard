@@ -45,7 +45,11 @@ const ProspectList = {
       // Name
       const nameTd = document.createElement("td");
       nameTd.className = "col-name";
-      nameTd.textContent = m.displayName;
+      const nameLink = document.createElement("a");
+      nameLink.className = "table-name-link";
+      nameLink.href = "#member/" + m.id;
+      nameLink.textContent = m.displayName;
+      nameTd.appendChild(nameLink);
       tr.appendChild(nameTd);
 
       // Status
