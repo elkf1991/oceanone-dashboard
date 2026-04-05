@@ -2,6 +2,11 @@
  * Ocean One Dashboard — Training Page
  * Sub-section 1: Dropout funnel (L1 → L2 → L3 → Regular)
  * Sub-section 2: Regular Training Session Availability
+ *
+ * Funnel counts: only completed (✓) rows count.
+ * Scheduled rows: shown in table with date/time text, NOT counted in funnel.
+ * Special scheduled values: "Rearrange" → light-yellow cell,
+ *   "飛機, no response" → light-red cell.
  */
 
 const Training = {
@@ -9,23 +14,19 @@ const Training = {
     container.innerHTML = "";
     container.classList.remove("main-content--fit-org");
 
-    // Build set of active member IDs from org tree (exclude root "kobo")
     const activeIds = new Set();
     if (orgTree) this._collectIds(orgTree, activeIds);
 
     const wrapper = document.createElement("div");
     wrapper.className = "training-page";
 
-    // Page header
     const header = document.createElement("div");
     header.className = "content-header";
     header.innerHTML = "<h2>Training 培訓</h2>";
     wrapper.appendChild(header);
 
-    // Sub-nav tabs
-    const tabs = document.createElement("div");
-    tabs.className = "training-tabs";
-
+    const tabs       = document.createElement("div");
+    tabs.className   = "training-tabs";
     const tabContent = document.createElement("div");
     tabContent.className = "training-tab-content";
 
@@ -55,11 +56,9 @@ const Training = {
     wrapper.appendChild(tabs);
     wrapper.appendChild(tabContent);
     container.appendChild(wrapper);
-
     renderTab("dropout");
   },
 
-  // Collect all node IDs under root (skip root "kobo" itself)
   _collectIds(node, set) {
     (node.children || []).forEach((child) => {
       set.add(child.id);
@@ -67,25 +66,28 @@ const Training = {
     });
   },
 
-  // ── Sub-section 1: Dropout funnel ──────────────────────────────────────────
+  // ── Sub-section 1: Dropout funnel ─────────────────────────────────────────
 
   _renderDropout(container, members, activeIds) {
-    // All members who completed L1, sorted: active first by sortOrder, inactive last
+    // Include anyone who has completed L1 OR has L1 scheduled
     const rows = Object.values(members)
-      .filter((m) => (m.trainingCompleted || []).includes("L1"))
+      .filter((m) => {
+        const done = m.trainingCompleted || [];
+        const sched = m.trainingScheduled || {};
+        return done.includes("L1") || !!sched["L1"];
+      })
       .sort((a, b) => {
         const aA = activeIds.has(a.id), bA = activeIds.has(b.id);
         if (aA !== bA) return aA ? -1 : 1;
         return (a.sortOrder ?? 999) - (b.sortOrder ?? 999);
       });
 
-    // Funnel counts
-    const l1  = rows.length;
+    // Funnel counts — only completed rows count
+    const l1  = rows.filter((m) => (m.trainingCompleted || []).includes("L1")).length;
     const l2  = rows.filter((m) => (m.trainingCompleted || []).includes("L2")).length;
     const l3  = rows.filter((m) => (m.trainingCompleted || []).includes("L3")).length;
     const reg = rows.filter((m) => this._hasRegular(m)).length;
 
-    // Funnel blocks
     const funnel = document.createElement("div");
     funnel.className = "training-funnel";
     [
@@ -95,9 +97,8 @@ const Training = {
       { label: "Regular", count: reg },
     ].forEach(({ label, count }, i, arr) => {
       const prev = i > 0 ? arr[i - 1].count : null;
-      const pct = (prev !== null && prev > 0)
-        ? Math.round(count / prev * 100) + "%"
-        : null;
+      const pct  = (prev !== null && prev > 0)
+        ? Math.round(count / prev * 100) + "%" : null;
       const block = document.createElement("div");
       block.className = "funnel-block";
       block.innerHTML =
@@ -134,10 +135,12 @@ const Training = {
     const tbody = document.createElement("tbody");
     rows.forEach((m) => {
       const isActive = activeIds.has(m.id);
-      const done = m.trainingCompleted || [];
+      const done  = m.trainingCompleted || [];
+      const sched = m.trainingScheduled || {};
       const tr = document.createElement("tr");
       if (!isActive) tr.className = "row-inactive";
 
+      // Name cell
       const nameTd = document.createElement("td");
       nameTd.className = "col-name";
       nameTd.textContent = m.displayName;
@@ -149,13 +152,19 @@ const Training = {
       }
       tr.appendChild(nameTd);
 
+      // L1 / L2 / L3
       ["L1", "L2", "L3"].forEach((lvl) => {
         const td = document.createElement("td");
         td.className = "col-check";
-        td.textContent = done.includes(lvl) ? "✓" : "";
+        if (done.includes(lvl)) {
+          td.textContent = "✓";
+        } else if (sched[lvl]) {
+          this._applyScheduledCell(td, sched[lvl]);
+        }
         tr.appendChild(td);
       });
 
+      // Regular
       const regTd = document.createElement("td");
       regTd.className = "col-check";
       regTd.textContent = this._hasRegular(m) ? "✓" : "";
@@ -169,14 +178,41 @@ const Training = {
     container.appendChild(tableWrap);
   },
 
+  // Apply appropriate content + background colour to a scheduled cell
+  _applyScheduledCell(td, schedValue) {
+    const val = schedValue.trim();
+
+    if (val === "Rearrange") {
+      td.textContent = val;
+      td.style.background = "#fefce8";   // light yellow
+      td.style.color = "#a16207";
+      td.style.fontSize = "11px";
+    } else if (val.startsWith("飛機") || val.toLowerCase().includes("no response")) {
+      td.textContent = val;
+      td.style.background = "#fef2f2";   // light red
+      td.style.color = "#b91c1c";
+      td.style.fontSize = "11px";
+    } else if (val.toLowerCase().includes("arrange in") || val.toLowerCase().includes("tbc")) {
+      td.textContent = val;
+      td.style.background = "#fefce8";   // light yellow
+      td.style.color = "#a16207";
+      td.style.fontSize = "11px";
+    } else {
+      // Regular datetime schedule — show compactly
+      td.textContent = val;
+      td.style.fontSize = "11px";
+      td.style.color = "var(--ocean-mid)";
+      td.style.whiteSpace = "nowrap";
+    }
+  },
+
   _hasRegular(m) {
     return m.regularAttended === true;
   },
 
-  // ── Sub-section 2: Regular Training Availability ───────────────────────────
+  // ── Sub-section 2: Regular Training Availability ──────────────────────────
 
   _renderAvailability(container, members, activeIds) {
-    // Active members only, sorted by sortOrder
     const rows = Object.values(members)
       .filter((m) => activeIds.has(m.id))
       .sort((a, b) => (a.sortOrder ?? 999) - (b.sortOrder ?? 999));
