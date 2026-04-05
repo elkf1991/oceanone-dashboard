@@ -1489,9 +1489,17 @@ td.prospect-pending {
    自爆，邀約，簽單 — Summary table
    ============================================ */
 
+.milestone-table {
+  table-layout: fixed;
+}
+
+.milestone-table .col-name {
+  width: 25%;
+}
+
 .col-milestone {
   text-align: center;
-  width: 100px;
+  width: 25%;
 }
 
 .milestone-tick {
