@@ -106,12 +106,14 @@ const Exam = {
     }
 
     // ── Booked / tentatively booked ─────────────────────────────────────────
-    // e.g. "已報 2026-03-17"  "擬報 2026-03-20（未確認）"
-    if (val.startsWith("已報") || val.startsWith("擬報")) {
+    // e.g. "已報 2026-03-17"  "擬報 2026-03-20（未確認）"  "Scheduled 2026-04-30"
+    if (val.startsWith("已報") || val.startsWith("擬報") || /^scheduled/i.test(val)) {
       const dateMatch = val.match(/\d{4}-\d{2}-\d{2}/);
-      const prefix = val.startsWith("已報") ? "已報" : "擬報";
+      let prefix = "已報";
+      if (val.startsWith("擬報")) prefix = "擬報";
+      else if (/^scheduled/i.test(val)) prefix = "Scheduled";
       td.textContent = dateMatch ? `${prefix} ${dateMatch[0]}` : val;
-      td.classList.add(val.startsWith("已報") ? "exam-booked" : "exam-tentative");
+      td.classList.add(val.startsWith("擬報") ? "exam-tentative" : "exam-booked");
       return;
     }
 
