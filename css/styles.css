@@ -1229,6 +1229,56 @@ html, body {
   opacity: 0.85;
 }
 
+/* ============================================
+   Exam & Licence Table
+   ============================================ */
+
+.exam-page .content-header {
+  margin-bottom: 20px;
+}
+
+.exam-table .col-exam {
+  text-align: center;
+  min-width: 140px;
+  font-size: 13px;
+}
+
+/* Passed / Licensed */
+.exam-table td.exam-passed {
+  color: #16a34a;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+/* Not yet scheduled */
+.exam-table td.exam-pending {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* Booked — confirmed date */
+.exam-table td.exam-booked {
+  color: var(--ocean-mid);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* Tentatively booked */
+.exam-table td.exam-tentative {
+  background: #fefce8;
+  color: #a16207;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* Already sat, waiting for result */
+.exam-table td.exam-sat {
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 600;
+  font-size: 12px;
+}
+
 /* Regular Training Section */
 .regular-sessions-legend {
   display: flex;
