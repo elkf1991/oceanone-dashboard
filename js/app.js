@@ -167,6 +167,10 @@ const App = {
       this.setActiveNav("exam");
       mainContent.classList.remove("main-content--fit-org");
       Exam.render(mainContent, { members: this._members, orgTree: this._orgTree });
+    } else if (hash === "#prospectlist") {
+      this.setActiveNav("prospectlist");
+      mainContent.classList.remove("main-content--fit-org");
+      ProspectList.render(mainContent, { members: this._members, orgTree: this._orgTree });
     } else {
       window.location.hash = "#orgchart";
     }

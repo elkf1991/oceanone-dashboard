@@ -1303,6 +1303,116 @@ html, body {
   font-style: italic;
 }
 
+/* ============================================
+   人名單 Prospect List
+   ============================================ */
+
+.col-prospect-status {
+  text-align: center;
+  width: 80px;
+}
+
+.col-prospect-link {
+  text-align: left;
+  width: 160px;
+}
+
+td.prospect-done {
+  color: #16a34a;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+td.prospect-pending {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.prospect-link-btn {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--ocean-mid);
+  color: var(--white);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.prospect-link-btn:hover {
+  background: var(--ocean-deep);
+}
+
+/* Member detail — prospect list section */
+.prospect-list-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.prospect-tick-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.prospect-tick-checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--ocean-mid);
+}
+
+.prospect-url-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+}
+
+.prospect-url-input:focus {
+  border-color: var(--ocean-light);
+}
+
+.prospect-open-btn {
+  display: inline-block;
+  padding: 5px 14px;
+  background: var(--ocean-mid);
+  color: var(--white);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.prospect-open-btn:hover {
+  background: var(--ocean-deep);
+}
+
+.prospect-open-btn.hidden {
+  display: none;
+}
+
+.prospect-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 /* Regular Training Section */
 .regular-sessions-legend {
   display: flex;

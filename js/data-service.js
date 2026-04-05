@@ -54,6 +54,17 @@ const DataService = {
   },
 
   /**
+   * Save prospect list (人名單) for a teammate.
+   */
+  async saveProspectList(memberId, done, url) {
+    const { error } = await supabase
+      .from("teammates")
+      .update({ prospect_list_done: done, prospect_list_url: url })
+      .eq("id", memberId);
+    if (error) throw new Error(error.message);
+  },
+
+  /**
    * Save 狀態 (status) for a teammate.
    */
   async saveStatus(memberId, status) {
@@ -93,6 +104,8 @@ const DataService = {
       regularAttended:    row.regular_attended === true,
       sortOrder:          row.sort_order ?? null,
       status:             row.status || null,
+      prospectListDone:   row.prospect_list_done === true,
+      prospectListUrl:    row.prospect_list_url || null,
     };
   },
 

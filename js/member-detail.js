@@ -67,6 +67,9 @@ const MemberDetail = {
       detail.appendChild(this.buildRemarksSection(member));
     }
 
+    // 人名單 Prospect List
+    detail.appendChild(this.buildProspectListSection(member));
+
     // Admin Notes
     detail.appendChild(this.buildAdminNotesSection(member));
 
@@ -432,6 +435,101 @@ const MemberDetail = {
     text.className = "remarks-text";
     text.textContent = member.remarks;
     section.appendChild(text);
+
+    return section;
+  },
+
+  buildProspectListSection(member) {
+    const section = document.createElement("div");
+    section.className = "detail-section";
+
+    const title = document.createElement("h3");
+    title.textContent = "人名單 Prospect List";
+    section.appendChild(title);
+
+    const row = document.createElement("div");
+    row.className = "prospect-list-row";
+
+    // Tick checkbox (toggle done)
+    const tickLabel = document.createElement("label");
+    tickLabel.className = "prospect-tick-label";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.className = "prospect-tick-checkbox";
+    checkbox.checked = !!member.prospectListDone;
+
+    const tickText = document.createElement("span");
+    tickText.textContent = "已完成";
+
+    tickLabel.appendChild(checkbox);
+    tickLabel.appendChild(tickText);
+    row.appendChild(tickLabel);
+
+    // URL input
+    const urlInput = document.createElement("input");
+    urlInput.type = "url";
+    urlInput.className = "prospect-url-input";
+    urlInput.placeholder = "Google Sheets link…";
+    urlInput.value = member.prospectListUrl || "";
+    row.appendChild(urlInput);
+
+    // Open link button (visible when URL is set)
+    const openBtn = document.createElement("a");
+    openBtn.className = "prospect-open-btn" + (member.prospectListUrl ? "" : " hidden");
+    openBtn.textContent = "Open ↗";
+    openBtn.target = "_blank";
+    openBtn.rel = "noopener noreferrer";
+    openBtn.href = member.prospectListUrl || "#";
+    row.appendChild(openBtn);
+
+    section.appendChild(row);
+
+    // Save button + feedback
+    const footer = document.createElement("div");
+    footer.className = "prospect-footer";
+
+    const saveBtn = document.createElement("button");
+    saveBtn.className = "admin-notes-save-btn";
+    saveBtn.textContent = "Save";
+    footer.appendChild(saveBtn);
+
+    const feedback = document.createElement("span");
+    feedback.className = "admin-notes-feedback";
+    footer.appendChild(feedback);
+    section.appendChild(footer);
+
+    // Update open button visibility on URL input
+    urlInput.addEventListener("input", () => {
+      const v = urlInput.value.trim();
+      openBtn.href = v || "#";
+      openBtn.classList.toggle("hidden", !v);
+    });
+
+    saveBtn.addEventListener("click", async () => {
+      saveBtn.disabled = true;
+      saveBtn.textContent = "Saving…";
+      feedback.textContent = "";
+      feedback.className = "admin-notes-feedback";
+      try {
+        const done = checkbox.checked;
+        const url  = urlInput.value.trim() || null;
+        await DataService.saveProspectList(member.id, done, url);
+        member.prospectListDone = done;
+        member.prospectListUrl  = url;
+        openBtn.href = url || "#";
+        openBtn.classList.toggle("hidden", !url);
+        feedback.textContent = "Saved ✓";
+        feedback.classList.add("success");
+      } catch {
+        feedback.textContent = "Failed to save";
+        feedback.classList.add("error");
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Save";
+        setTimeout(() => { feedback.textContent = ""; feedback.className = "admin-notes-feedback"; }, 3000);
+      }
+    });
 
     return section;
   },
