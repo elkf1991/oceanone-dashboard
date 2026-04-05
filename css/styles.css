@@ -1258,7 +1258,8 @@ html, body {
 
 /* Booked — confirmed date */
 .exam-table td.exam-booked {
-  color: var(--ocean-mid);
+  background: #fefce8;
+  color: #a16207;
   font-weight: 600;
   font-size: 12px;
 }
