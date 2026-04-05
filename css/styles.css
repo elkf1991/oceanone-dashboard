@@ -1307,6 +1307,11 @@ html, body {
    人名單 Prospect List
    ============================================ */
 
+.prospectlist-table th.col-name {
+  min-width: 80px;
+  width: 120px;
+}
+
 .col-prospect-status {
   text-align: center;
   width: 80px;
