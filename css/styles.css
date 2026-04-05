@@ -1279,6 +1279,21 @@ html, body {
   font-size: 12px;
 }
 
+/* Failed, need re-exam */
+.exam-table td.exam-failed {
+  background: #fefce8;
+  color: #a16207;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* Free-text note */
+.exam-table td.exam-note {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-style: italic;
+}
+
 /* Regular Training Section */
 .regular-sessions-legend {
   display: flex;

@@ -87,12 +87,21 @@ const Exam = {
       return;
     }
 
+    // ── Failed, Need Re-exam ─────────────────────────────────────────────────
+    // e.g. "2026-03-17 Failed, Need Re-exam"
+    if (/failed/i.test(val) || /re-exam/i.test(val)) {
+      const dateMatch = val.match(/\d{4}-\d{2}-\d{2}/);
+      td.textContent = dateMatch ? `${dateMatch[0]} Failed, Re-exam` : val;
+      td.classList.add("exam-failed");
+      return;
+    }
+
     // ── Already sat exam (result pending) ───────────────────────────────────
     // e.g. "已考 2026-03-09（筆試，約一星期知結果）"
     if (val.startsWith("已考")) {
       const dateMatch = val.match(/\d{4}-\d{2}-\d{2}/);
       td.textContent = dateMatch ? `已考 ${dateMatch[0]}` : val;
-      td.classList.add("exam-sat");   // blue-ish — waiting for result
+      td.classList.add("exam-sat");
       return;
     }
 
@@ -113,9 +122,9 @@ const Exam = {
       return;
     }
 
-    // ── Fallback: show as-is ─────────────────────────────────────────────────
+    // ── Free-text note (e.g. "打算5月考, 4月報", "想預好時間…") ───────────────
     td.textContent = val;
-    td.style.fontSize = "11px";
+    td.classList.add("exam-note");
   },
 
   _collectIds(node, set) {
