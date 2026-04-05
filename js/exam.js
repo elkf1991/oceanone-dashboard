@@ -122,6 +122,13 @@ const Exam = {
       return;
     }
 
+    // ── In progress ──────────────────────────────────────────────────────────
+    if (/^in progress/i.test(val)) {
+      td.textContent = val;
+      td.classList.add("exam-inprogress");
+      return;
+    }
+
     // ── Free-text note (e.g. "打算5月考, 4月報", "想預好時間…") ───────────────
     td.textContent = val;
     td.classList.add("exam-note");

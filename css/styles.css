@@ -1287,6 +1287,14 @@ html, body {
   font-size: 12px;
 }
 
+/* In progress */
+.exam-table td.exam-inprogress {
+  background: #f0fdf4;
+  color: #15803d;
+  font-weight: 600;
+  font-size: 12px;
+}
+
 /* Free-text note */
 .exam-table td.exam-note {
   color: var(--text-muted);
