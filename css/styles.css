@@ -1430,6 +1430,84 @@ td.prospect-pending {
   gap: 10px;
 }
 
+/* ============================================
+   自爆，邀約，簽單 — Member detail section
+   ============================================ */
+
+.milestone-grid {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.milestone-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 120px;
+}
+
+.milestone-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ocean-deep);
+}
+
+.milestone-text-input {
+  padding: 6px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  width: 180px;
+}
+
+.milestone-text-input:focus {
+  border-color: var(--ocean-light);
+}
+
+.milestone-check-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.milestone-checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--ocean-mid);
+}
+
+/* ============================================
+   自爆，邀約，簽單 — Summary table
+   ============================================ */
+
+.col-milestone {
+  text-align: center;
+  width: 100px;
+}
+
+.milestone-tick {
+  color: #16a34a;
+  font-weight: 700;
+  font-size: 16px;
+  display: block;
+}
+
+.milestone-amount {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
 /* Regular Training Section */
 .regular-sessions-legend {
   display: flex;

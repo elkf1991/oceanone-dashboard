@@ -67,6 +67,9 @@ const MemberDetail = {
       detail.appendChild(this.buildRemarksSection(member));
     }
 
+    // 自爆，邀約，簽單
+    detail.appendChild(this.buildMilestoneSection(member));
+
     // 人名單 Prospect List
     detail.appendChild(this.buildProspectListSection(member));
 
@@ -435,6 +438,111 @@ const MemberDetail = {
     text.className = "remarks-text";
     text.textContent = member.remarks;
     section.appendChild(text);
+
+    return section;
+  },
+
+  buildMilestoneSection(member) {
+    const section = document.createElement("div");
+    section.className = "detail-section";
+
+    const title = document.createElement("h3");
+    title.textContent = "自爆，邀約，簽單";
+    section.appendChild(title);
+
+    const grid = document.createElement("div");
+    grid.className = "milestone-grid";
+
+    // ── 自爆 (own plan) — text field with tick ────────────────────────────
+    const ownPlanBlock = document.createElement("div");
+    ownPlanBlock.className = "milestone-item";
+
+    const ownLabel = document.createElement("div");
+    ownLabel.className = "milestone-label";
+    ownLabel.textContent = "自爆";
+    ownPlanBlock.appendChild(ownLabel);
+
+    const ownInput = document.createElement("input");
+    ownInput.type = "text";
+    ownInput.className = "milestone-text-input";
+    ownInput.placeholder = "e.g. 180 USD/month";
+    ownInput.value = member.milestoneOwnPlan || "";
+    ownPlanBlock.appendChild(ownInput);
+
+    grid.appendChild(ownPlanBlock);
+
+    // ── 邀約 + 簽單 — checkboxes ─────────────────────────────────────────
+    [
+      { key: "invites",   label: "邀約",  field: "milestoneInvites"  },
+      { key: "signCase",  label: "簽單",  field: "milestoneSignCase" },
+    ].forEach(({ label, field }) => {
+      const block = document.createElement("div");
+      block.className = "milestone-item";
+
+      const lbl = document.createElement("div");
+      lbl.className = "milestone-label";
+      lbl.textContent = label;
+      block.appendChild(lbl);
+
+      const checkLabel = document.createElement("label");
+      checkLabel.className = "milestone-check-label";
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.className = "milestone-checkbox";
+      cb.checked = !!member[field];
+      cb.dataset.field = field;
+      checkLabel.appendChild(cb);
+      const tick = document.createElement("span");
+      tick.className = "milestone-check-text";
+      tick.textContent = "完成";
+      checkLabel.appendChild(tick);
+      block.appendChild(checkLabel);
+
+      grid.appendChild(block);
+    });
+
+    section.appendChild(grid);
+
+    // Save button
+    const footer = document.createElement("div");
+    footer.className = "prospect-footer";
+
+    const saveBtn = document.createElement("button");
+    saveBtn.className = "admin-notes-save-btn";
+    saveBtn.textContent = "Save";
+    footer.appendChild(saveBtn);
+
+    const feedback = document.createElement("span");
+    feedback.className = "admin-notes-feedback";
+    footer.appendChild(feedback);
+    section.appendChild(footer);
+
+    saveBtn.addEventListener("click", async () => {
+      saveBtn.disabled = true;
+      saveBtn.textContent = "Saving…";
+      feedback.textContent = "";
+      feedback.className = "admin-notes-feedback";
+      try {
+        const invitesCb  = grid.querySelector('[data-field="milestoneInvites"]');
+        const signCb     = grid.querySelector('[data-field="milestoneSignCase"]');
+        const ownPlan    = ownInput.value.trim() || null;
+        const invites    = invitesCb.checked;
+        const signCase   = signCb.checked;
+        await DataService.saveMilestones(member.id, { ownPlan, invites, signCase });
+        member.milestoneOwnPlan  = ownPlan;
+        member.milestoneInvites  = invites;
+        member.milestoneSignCase = signCase;
+        feedback.textContent = "Saved ✓";
+        feedback.classList.add("success");
+      } catch {
+        feedback.textContent = "Failed to save";
+        feedback.classList.add("error");
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Save";
+        setTimeout(() => { feedback.textContent = ""; feedback.className = "admin-notes-feedback"; }, 3000);
+      }
+    });
 
     return section;
   },

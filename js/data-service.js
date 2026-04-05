@@ -54,6 +54,21 @@ const DataService = {
   },
 
   /**
+   * Save 自爆邀約簽單 milestones for a teammate.
+   */
+  async saveMilestones(memberId, { ownPlan, invites, signCase }) {
+    const { error } = await supabase
+      .from("teammates")
+      .update({
+        milestone_own_plan:  ownPlan  || null,
+        milestone_invites:   invites,
+        milestone_sign_case: signCase,
+      })
+      .eq("id", memberId);
+    if (error) throw new Error(error.message);
+  },
+
+  /**
    * Save prospect list (人名單) for a teammate.
    */
   async saveProspectList(memberId, done, url) {
@@ -106,6 +121,9 @@ const DataService = {
       status:             row.status || null,
       prospectListDone:   row.prospect_list_done === true,
       prospectListUrl:    row.prospect_list_url || null,
+      milestoneOwnPlan:   row.milestone_own_plan || null,
+      milestoneInvites:   row.milestone_invites === true,
+      milestoneSignCase:  row.milestone_sign_case === true,
     };
   },
 
