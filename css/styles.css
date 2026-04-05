@@ -1431,6 +1431,96 @@ td.prospect-pending {
 }
 
 /* ============================================
+   Remarks 備註 — list + add row
+   ============================================ */
+
+.remarks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.remarks-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--ocean-pale);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.remarks-row-text {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.remarks-del-btn {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  background: #fecaca;
+  color: #b91c1c;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.remarks-del-btn:hover {
+  background: #fca5a5;
+}
+
+.remarks-add-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.remarks-input {
+  flex: 1;
+  padding: 7px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+}
+
+.remarks-input:focus {
+  border-color: var(--ocean-light);
+}
+
+.remarks-add-btn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: #16a34a;
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: background 0.15s;
+}
+
+.remarks-add-btn:hover {
+  background: #15803d;
+}
+
+/* ============================================
    自爆，邀約，簽單 — Member detail section
    ============================================ */
 

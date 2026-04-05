@@ -54,6 +54,17 @@ const DataService = {
   },
 
   /**
+   * Save remarks list for a teammate.
+   */
+  async saveRemarksList(memberId, list) {
+    const { error } = await supabase
+      .from("teammates")
+      .update({ remarks_list: list })
+      .eq("id", memberId);
+    if (error) throw new Error(error.message);
+  },
+
+  /**
    * Save 自爆邀約簽單 milestones for a teammate.
    */
   async saveMilestones(memberId, { ownPlan, invites, signCase }) {
@@ -124,6 +135,7 @@ const DataService = {
       milestoneOwnPlan:   row.milestone_own_plan || null,
       milestoneInvites:   row.milestone_invites === true,
       milestoneSignCase:  row.milestone_sign_case === true,
+      remarksList:        Array.isArray(row.remarks_list) ? row.remarks_list : [],
     };
   },
 

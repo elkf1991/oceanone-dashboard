@@ -62,19 +62,14 @@ const MemberDetail = {
       detail.appendChild(this.buildAccomplishmentSection(member));
     }
 
-    // Remarks
-    if (member.remarks) {
-      detail.appendChild(this.buildRemarksSection(member));
-    }
-
     // 自爆，邀約，簽單
     detail.appendChild(this.buildMilestoneSection(member));
 
     // 人名單 Prospect List
     detail.appendChild(this.buildProspectListSection(member));
 
-    // Admin Notes
-    detail.appendChild(this.buildAdminNotesSection(member));
+    // Remarks 備註 (combined)
+    detail.appendChild(this.buildRemarksSection(member));
 
     container.appendChild(detail);
   },
@@ -434,10 +429,76 @@ const MemberDetail = {
     title.textContent = "Remarks 備註";
     section.appendChild(title);
 
-    const text = document.createElement("p");
-    text.className = "remarks-text";
-    text.textContent = member.remarks;
-    section.appendChild(text);
+    // List of existing remarks
+    const list = document.createElement("div");
+    list.className = "remarks-list";
+    section.appendChild(list);
+
+    const renderList = () => {
+      list.innerHTML = "";
+      (member.remarksList || []).forEach((text, idx) => {
+        const row = document.createElement("div");
+        row.className = "remarks-row";
+
+        const span = document.createElement("span");
+        span.className = "remarks-row-text";
+        span.textContent = text;
+        row.appendChild(span);
+
+        const delBtn = document.createElement("button");
+        delBtn.className = "remarks-del-btn";
+        delBtn.innerHTML = "&#10005;";
+        delBtn.title = "Delete";
+        delBtn.addEventListener("click", async () => {
+          const updated = (member.remarksList || []).filter((_, i) => i !== idx);
+          try {
+            await DataService.saveRemarksList(member.id, updated);
+            member.remarksList = updated;
+            renderList();
+          } catch {
+            // silent fail — row stays
+          }
+        });
+        row.appendChild(delBtn);
+        list.appendChild(row);
+      });
+    };
+    renderList();
+
+    // Add new remark
+    const addRow = document.createElement("div");
+    addRow.className = "remarks-add-row";
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "remarks-input";
+    input.placeholder = "Add a remark…";
+    addRow.appendChild(input);
+
+    const addBtn = document.createElement("button");
+    addBtn.className = "remarks-add-btn";
+    addBtn.innerHTML = "&#43;";
+    addBtn.title = "Add";
+
+    const doAdd = async () => {
+      const val = input.value.trim();
+      if (!val) return;
+      const updated = [...(member.remarksList || []), val];
+      try {
+        await DataService.saveRemarksList(member.id, updated);
+        member.remarksList = updated;
+        input.value = "";
+        renderList();
+      } catch {
+        // silent fail
+      }
+    };
+
+    addBtn.addEventListener("click", doAdd);
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") doAdd(); });
+
+    addRow.appendChild(addBtn);
+    section.appendChild(addRow);
 
     return section;
   },
@@ -635,58 +696,6 @@ const MemberDetail = {
       } finally {
         saveBtn.disabled = false;
         saveBtn.textContent = "Save";
-        setTimeout(() => { feedback.textContent = ""; feedback.className = "admin-notes-feedback"; }, 3000);
-      }
-    });
-
-    return section;
-  },
-
-  buildAdminNotesSection(member) {
-    const section = document.createElement("div");
-    section.className = "detail-section admin-notes-section";
-
-    const title = document.createElement("h3");
-    title.textContent = "Admin Notes 管理員備註";
-    section.appendChild(title);
-
-    const textarea = document.createElement("textarea");
-    textarea.className = "admin-notes-textarea";
-    textarea.placeholder = "Add private notes about this teammate...";
-    textarea.value = member.adminNotes || "";
-    section.appendChild(textarea);
-
-    const footer = document.createElement("div");
-    footer.className = "admin-notes-footer";
-
-    const saveBtn = document.createElement("button");
-    saveBtn.className = "admin-notes-save-btn";
-    saveBtn.textContent = "Save Notes";
-    footer.appendChild(saveBtn);
-
-    const feedback = document.createElement("span");
-    feedback.className = "admin-notes-feedback";
-    footer.appendChild(feedback);
-
-    section.appendChild(footer);
-
-    saveBtn.addEventListener("click", async () => {
-      saveBtn.disabled = true;
-      saveBtn.textContent = "Saving...";
-      feedback.textContent = "";
-      feedback.className = "admin-notes-feedback";
-
-      try {
-        await DataService.saveNotes(member.id, textarea.value);
-        member.adminNotes = textarea.value;
-        feedback.textContent = "Saved ✓";
-        feedback.classList.add("success");
-      } catch (err) {
-        feedback.textContent = "Failed to save";
-        feedback.classList.add("error");
-      } finally {
-        saveBtn.disabled = false;
-        saveBtn.textContent = "Save Notes";
         setTimeout(() => { feedback.textContent = ""; feedback.className = "admin-notes-feedback"; }, 3000);
       }
     });
