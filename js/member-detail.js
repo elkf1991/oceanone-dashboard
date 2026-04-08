@@ -149,7 +149,12 @@ const MemberDetail = {
     meta.className = "member-meta";
 
     if (member.contact) {
-      meta.appendChild(this.buildMetaItem("Phone", member.contact));
+      const phoneItem = document.createElement("div");
+      phoneItem.className = "member-meta-item";
+      const waLink = "https://wa.me/852" + member.contact.replace(/\s/g, "");
+      phoneItem.innerHTML = "<strong>Phone:</strong> " + this.escapeHtml(member.contact) +
+        ' <a class="wa-btn" href="' + waLink + '" target="_blank" rel="noopener">WhatsApp ↗</a>';
+      meta.appendChild(phoneItem);
     }
     if (member.background) {
       meta.appendChild(this.buildMetaItem("Background", member.background));
