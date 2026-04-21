@@ -36,6 +36,7 @@ const FILTER_ROWS = [
 const Leads = {
   _cache: null,
   _activeSource: "All",
+  _activeMonth: "All",
 
   render(container, { members }) {
     container.innerHTML = "";
@@ -69,6 +70,7 @@ const Leads = {
       const allRows = this._normaliseRows(raw, l1Map);
 
       this._activeSource = "All";
+      this._activeMonth  = "All";
 
       const filterWrap = document.createElement("div");
       filterWrap.className = "leads-filters";
@@ -77,6 +79,12 @@ const Leads = {
       funnelWrap.className = "leads-funnel-wrap";
 
       const getFiltered = () => allRows.filter(r => {
+        // Month filter: r.date is "YYYY-MM-DD"; _activeMonth is "YYYYMM"
+        if (this._activeMonth !== "All") {
+          const rowMonth = (r.date || "").replace("-", "").substring(0, 6); // "YYYYMM"
+          if (rowMonth !== this._activeMonth) return false;
+        }
+        // Source filter
         if (this._activeSource === "All")          return true;
         if (this._activeSource === "Moovup (All)") return MOOVUP_SOURCES.includes(r.source);
         return r.source === this._activeSource;
@@ -87,6 +95,45 @@ const Leads = {
         funnelWrap.appendChild(this._renderFunnel(getFiltered()));
       };
 
+      // ── Month filter row ────────────────────────────────────────────────────
+      const months = this._extractMonths(allRows); // sorted ["YYYYMM", ...]
+      const monthRow = document.createElement("div");
+      monthRow.className = "leads-filter-row leads-month-row";
+
+      const monthLabel = document.createElement("span");
+      monthLabel.className = "leads-filter-label";
+      monthLabel.textContent = "Month:";
+      monthRow.appendChild(monthLabel);
+
+      const allMonthBtn = document.createElement("button");
+      allMonthBtn.className = "leads-filter-btn leads-month-btn active";
+      allMonthBtn.textContent = "All";
+      allMonthBtn.addEventListener("click", () => {
+        this._activeMonth = "All";
+        monthRow.querySelectorAll(".leads-month-btn").forEach(b =>
+          b.classList.toggle("active", b.textContent === "All")
+        );
+        redraw();
+      });
+      monthRow.appendChild(allMonthBtn);
+
+      months.forEach(ym => {
+        const btn = document.createElement("button");
+        btn.className = "leads-filter-btn leads-month-btn";
+        btn.textContent = ym; // "YYYYMM"
+        btn.addEventListener("click", () => {
+          this._activeMonth = ym;
+          monthRow.querySelectorAll(".leads-month-btn").forEach(b =>
+            b.classList.toggle("active", b.textContent === ym)
+          );
+          redraw();
+        });
+        monthRow.appendChild(btn);
+      });
+
+      filterWrap.appendChild(monthRow);
+
+      // ── Source filter rows ──────────────────────────────────────────────────
       FILTER_ROWS.forEach(rowBtns => {
         const rowEl = document.createElement("div");
         rowEl.className = "leads-filter-row";
@@ -96,7 +143,7 @@ const Leads = {
           btn.textContent = src;
           btn.addEventListener("click", () => {
             this._activeSource = src;
-            filterWrap.querySelectorAll(".leads-filter-btn").forEach(b =>
+            filterWrap.querySelectorAll(".leads-filter-row:not(.leads-month-row) .leads-filter-btn").forEach(b =>
               b.classList.toggle("active", b.textContent === src)
             );
             redraw();
@@ -362,5 +409,18 @@ const Leads = {
   _uniqueSources(rows) {
     const present = new Set(rows.map(r => r.source));
     return SOURCE_ORDER.filter(s => present.has(s));
+  },
+
+  // Returns sorted unique "YYYYMM" strings from all rows that have a date
+  _extractMonths(rows) {
+    const set = new Set();
+    for (const r of rows) {
+      if (r.date && r.date.length >= 7) {
+        // "YYYY-MM-DD" → remove first "-" → "YYYYMM..." → take 6 chars
+        const ym = r.date.substring(0, 4) + r.date.substring(5, 7); // "YYYYMM"
+        set.add(ym);
+      }
+    }
+    return Array.from(set).sort();
   },
 };

@@ -985,6 +985,27 @@ html, body {
   color: #fff;
 }
 
+.leads-month-row {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+}
+
+.leads-filter-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  align-self: center;
+  margin-right: 4px;
+}
+
+.leads-month-btn {
+  font-family: monospace;
+  font-size: 0.82rem;
+}
+
 .leads-funnel-wrap {
   margin-top: 8px;
   overflow-x: auto;
