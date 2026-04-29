@@ -382,8 +382,8 @@ const MemberDetail = {
 
   async _appendTimetablePhoto(section, displayName, memberId) {
     const candidates = [
-      `${displayName}.jpeg`, `${displayName}.png`,
-      `${memberId}.jpeg`,    `${memberId}.png`,
+      `${displayName}.jpeg`, `${displayName}.jpg`, `${displayName}.png`,
+      `${memberId}.jpeg`,    `${memberId}.jpg`,    `${memberId}.png`,
     ];
     for (const filename of candidates) {
       const { data, error } = await supabase.storage
