@@ -1211,9 +1211,19 @@ html, body {
   color: var(--white);
 }
 
+.training-table th.col-check {
+  max-width: 120px;
+}
+
 .training-table td {
   padding: 10px 16px;
   border-bottom: 1px solid var(--border);
+}
+
+.training-table td.col-check {
+  max-width: 120px;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .training-table tbody tr:last-child td {
