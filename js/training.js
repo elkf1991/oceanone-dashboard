@@ -191,7 +191,7 @@ const Training = {
       td.style.background = "#fefce8";   // light yellow
       td.style.color = "#a16207";
       td.style.fontSize = "11px";
-    } else if (val.startsWith("飛機") || val.toLowerCase().includes("no response")) {
+    } else if (val.startsWith("飛機") || val.toLowerCase().includes("no response") || val.includes("缺席")) {
       td.textContent = val;
       td.style.background = "#fef2f2";   // light red
       td.style.color = "#b91c1c";
