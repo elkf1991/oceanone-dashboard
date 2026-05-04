@@ -1886,11 +1886,43 @@ td.prospect-pending {
   box-shadow: var(--shadow);
 }
 
+/* ── Toolbar (Export button row) ── */
+.pol-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.pol-export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  background: var(--ocean-deep);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.pol-export-btn:hover {
+  background: var(--ocean-mid);
+}
+
+.pol-export-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 /* ── Table ── */
 .pol-table {
   border-collapse: collapse;
   width: 100%;
-  min-width: 1400px;
+  min-width: 1742px;
   font-size: 12px;
   table-layout: fixed;
 }
@@ -1918,15 +1950,15 @@ td.prospect-pending {
 
 /* ── Column widths ── */
 .pol-col-date    { width: 108px; }
-.pol-col-staff   { width: 120px; }
-.pol-col-polno   { width: 110px; }
-.pol-col-holder  { width: 100px; }
-.pol-col-insurer { width: 90px;  }
-.pol-col-product { width: 170px; }
-.pol-col-freq    { width: 72px;  }
-.pol-col-cur     { width: 64px;  }
-.pol-col-prem    { width: 100px; }
-.pol-col-act     { width: 72px;  }
+.pol-col-staff   { width: 150px; }
+.pol-col-polno   { width: 140px; }
+.pol-col-holder  { width: 110px; }
+.pol-col-insurer { width: 100px; }
+.pol-col-product { width: 200px; }
+.pol-col-freq    { width: 76px;  }
+.pol-col-cur     { width: 68px;  }
+.pol-col-prem    { width: 110px; }
+.pol-col-act     { width: 80px;  }
 
 /* ── Data rows ── */
 .pol-row td {
@@ -1936,9 +1968,8 @@ td.prospect-pending {
   vertical-align: middle;
   color: var(--text);
   font-size: 12px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .pol-row td:last-child {

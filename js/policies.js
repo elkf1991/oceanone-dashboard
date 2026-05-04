@@ -57,6 +57,9 @@ const Policies = {
     // Summary bar
     wrapper.appendChild(this._summaryBar());
 
+    // Toolbar (Export button)
+    wrapper.appendChild(this._toolbar());
+
     // Horizontally-scrollable table container
     const tableWrap = document.createElement('div');
     tableWrap.className = 'pol-table-wrap';
@@ -79,6 +82,71 @@ const Policies = {
     wrapper.appendChild(dl);
 
     c.appendChild(wrapper);
+  },
+
+  _toolbar() {
+    const bar = document.createElement('div');
+    bar.className = 'pol-toolbar';
+
+    const btn = document.createElement('button');
+    btn.className = 'pol-export-btn';
+    btn.innerHTML = '⬇️ Export XLSX';
+    btn.addEventListener('click', () => this._exportXlsx());
+    bar.appendChild(btn);
+
+    return bar;
+  },
+
+  _exportXlsx() {
+    if (typeof XLSX === 'undefined') {
+      alert('Excel export library not loaded. Please refresh the page and try again.');
+      return;
+    }
+
+    const HEADERS = {
+      sign_date:        '簽單日期',
+      policy_date:      '保單日期',
+      issue_date:       '保單簽發日',
+      cooling_off_date: '冷靜期屆滿日',
+      payout_date:      '預計OceanOne出糧日',
+      tr:               'TR',
+      introducer:       'Introducer',
+      policy_number:    '保單號碼',
+      policy_holder:    '保單持有人',
+      insurer:          '保險公司',
+      product:          '產品',
+      payment_freq:     '年繳/月繳',
+      currency:         '保費貨幣',
+      premium:          '每期保費',
+    };
+
+    // Sort same as table: sign_date descending
+    const sorted = [...this._policies].sort((a, b) => {
+      if (!a.sign_date && !b.sign_date) return 0;
+      if (!a.sign_date) return 1;
+      if (!b.sign_date) return -1;
+      return b.sign_date.localeCompare(a.sign_date);
+    });
+
+    const rows = sorted.map(p => {
+      const row = {};
+      Object.keys(HEADERS).forEach(key => {
+        row[HEADERS[key]] = p[key] != null ? p[key] : '';
+      });
+      return row;
+    });
+
+    const ws = XLSX.utils.json_to_sheet(rows, { header: Object.values(HEADERS) });
+
+    // Auto column widths based on header/content lengths
+    const colWidths = Object.values(HEADERS).map(h => ({ wch: Math.max(h.length * 2, 12) }));
+    ws['!cols'] = colWidths;
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '簽單記錄');
+
+    const today = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `OceanOne_Policies_${today}.xlsx`);
   },
 
   _summaryBar() {
