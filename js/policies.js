@@ -161,21 +161,28 @@ const Policies = {
 
     const count = this._policies.length;
 
-    // Total premium per currency
-    const totals = {};
+    // Total Annual Premium in USD
+    // Rules: 月繳 × 12, 年繳 × 1; HKD ÷ 7.8, USD × 1
+    const HKD_TO_USD = 7.8;
+    let totalAnnualUSD = 0;
+    let hasData = false;
+
     this._policies.forEach(p => {
-      if (p.premium != null && p.currency) {
-        totals[p.currency] = (totals[p.currency] || 0) + Number(p.premium);
-      }
+      if (p.premium == null || !p.currency) return;
+      const premium = Number(p.premium);
+      const annual  = p.payment_freq === '月繳' ? premium * 12 : premium;
+      const inUSD   = p.currency === 'HKD' ? annual / HKD_TO_USD : annual;
+      totalAnnualUSD += inUSD;
+      hasData = true;
     });
 
-    const totalStr = Object.entries(totals)
-      .map(([cur, amt]) => `${cur} ${amt.toLocaleString('en-HK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)
-      .join('　');
+    const totalStr = hasData
+      ? `USD ${totalAnnualUSD.toLocaleString('en-HK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      : '';
 
     bar.innerHTML = `
       <span class="pol-summary-item"><span class="pol-summary-label">Records</span><strong>${count}</strong></span>
-      ${totalStr ? `<span class="pol-summary-item"><span class="pol-summary-label">Total Premium</span><strong>${totalStr}</strong></span>` : ''}
+      ${totalStr ? `<span class="pol-summary-item"><span class="pol-summary-label">Total Annual Premium (USD)</span><strong>${totalStr}</strong></span>` : ''}
     `;
     return bar;
   },
