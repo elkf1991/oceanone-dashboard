@@ -201,9 +201,10 @@ const Policies = {
     return Object.values(this._members)
       .map(m => {
         if (!m.fullName) return null;
-        // Remove CJK unified ideographs and common CJK punctuation, then trim
         const english = m.fullName
-          .replace(/[　-鿿豈-﫿（）【】「」『』〔〕]/g, '')
+          .replace(/[^\x00-\x7F]/g, '')
+          .replace(/\(\s*\)/g, '')
+          .replace(/\s+/g, ' ')
           .trim();
         return english || null;
       })
