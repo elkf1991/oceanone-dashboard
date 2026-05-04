@@ -68,6 +68,9 @@ const MemberDetail = {
     // 人名單 Prospect List
     detail.appendChild(this.buildProspectListSection(member));
 
+    // Contract Preparation
+    detail.appendChild(this.buildContractSection(member));
+
     // Remarks 備註 (combined)
     detail.appendChild(this.buildRemarksSection(member));
 
@@ -706,6 +709,154 @@ const MemberDetail = {
     });
 
     return section;
+  },
+
+  buildContractSection(member) {
+    const section = document.createElement("div");
+    section.className = "detail-section";
+
+    const title = document.createElement("h3");
+    title.textContent = "Contract Preparation 合約準備";
+    section.appendChild(title);
+
+    const { englishName, chineseName } = this._parseNames(member);
+
+    const grid = document.createElement("div");
+    grid.className = "contract-form-grid";
+
+    const fieldDefs = [
+      { id: "contract-date",         label: "Date 日期",               value: "",          placeholder: "e.g. 25 March 2026" },
+      { id: "contract-english-name", label: "English Name 英文全名",    value: englishName, placeholder: "e.g. CHAN Tai Man"   },
+      { id: "contract-chinese-name", label: "Chinese Name 中文全名",    value: chineseName, placeholder: "e.g. 陳大文"         },
+      { id: "contract-hkid",         label: "HKID No. 香港身份證號碼",  value: "",          placeholder: "e.g. A123456(7)"    },
+    ];
+
+    const inputs = {};
+    fieldDefs.forEach(({ id, label, value, placeholder }) => {
+      const wrap = document.createElement("div");
+      wrap.className = "contract-field";
+
+      const lbl = document.createElement("label");
+      lbl.htmlFor = id;
+      lbl.textContent = label;
+      wrap.appendChild(lbl);
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.id = id;
+      input.value = value;
+      input.placeholder = placeholder;
+      wrap.appendChild(input);
+
+      inputs[id] = input;
+      grid.appendChild(wrap);
+    });
+
+    section.appendChild(grid);
+
+    const footer = document.createElement("div");
+    footer.className = "prospect-footer";
+
+    const generateBtn = document.createElement("button");
+    generateBtn.className = "contract-generate-btn";
+    generateBtn.textContent = "Generate Contract";
+    footer.appendChild(generateBtn);
+
+    const feedback = document.createElement("span");
+    feedback.className = "admin-notes-feedback";
+    footer.appendChild(feedback);
+    section.appendChild(footer);
+
+    generateBtn.addEventListener("click", async () => {
+      const date    = inputs["contract-date"].value.trim();
+      const engName = inputs["contract-english-name"].value.trim();
+      const chiName = inputs["contract-chinese-name"].value.trim();
+      const hkid    = inputs["contract-hkid"].value.trim();
+
+      if (!date || !engName) {
+        feedback.textContent = "Please fill in Date and English Name.";
+        feedback.className = "admin-notes-feedback error";
+        setTimeout(() => { feedback.textContent = ""; feedback.className = "admin-notes-feedback"; }, 3000);
+        return;
+      }
+
+      generateBtn.disabled = true;
+      generateBtn.textContent = "Generating…";
+      feedback.textContent = "";
+      feedback.className = "admin-notes-feedback";
+
+      try {
+        await this._downloadContract({ date, engName, chiName, hkid });
+        feedback.textContent = "Downloaded ✓";
+        feedback.className = "admin-notes-feedback success";
+      } catch (err) {
+        feedback.textContent = "Failed: " + err.message;
+        feedback.className = "admin-notes-feedback error";
+      } finally {
+        generateBtn.disabled = false;
+        generateBtn.textContent = "Generate Contract";
+        setTimeout(() => { feedback.textContent = ""; feedback.className = "admin-notes-feedback"; }, 4000);
+      }
+    });
+
+    return section;
+  },
+
+  _parseNames(member) {
+    const isChinese = (s) => /[一-鿿]/.test(s);
+    const fullName   = (member.fullName    || "").trim();
+    const displayName = (member.displayName || "").trim();
+
+    if (fullName) {
+      const m = fullName.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
+      if (m) {
+        const a = m[1].trim(), b = m[2].trim();
+        if (!isChinese(a) && isChinese(b)) return { englishName: a, chineseName: b };
+        if (isChinese(a)  && !isChinese(b)) return { englishName: b, chineseName: a };
+      }
+      if (isChinese(fullName)) {
+        return { englishName: isChinese(displayName) ? "" : displayName, chineseName: fullName };
+      }
+      return { englishName: fullName, chineseName: isChinese(displayName) ? displayName : "" };
+    }
+
+    return {
+      englishName: isChinese(displayName) ? "" : displayName,
+      chineseName: isChinese(displayName) ? displayName : "",
+    };
+  },
+
+  async _downloadContract({ date, engName, chiName, hkid }) {
+    const resp = await fetch("templates/contract-template.docx");
+    if (!resp.ok) throw new Error("Template file not found (templates/contract-template.docx)");
+    const buf = await resp.arrayBuffer();
+
+    const zip = new PizZip(buf);
+    let xml = zip.file("word/document.xml").asText();
+
+    const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    xml = xml.split("[Date]").join(esc(date));
+    xml = xml.split("[English Name]").join(esc(engName));
+    xml = xml.split("[Chinese Name]").join(esc(chiName || ""));
+    xml = xml.split("[HKID]").join(esc(hkid || "_______________"));
+
+    zip.file("word/document.xml", xml);
+
+    const blob = zip.generate({
+      type: "blob",
+      mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      compression: "DEFLATE",
+    });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = engName.replace(/\s+/g, "_") + "_OceanOne_BUSINESS REFERRAL & CONSULTANCY AGREEMENT.docx";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   },
 
   escapeHtml(str) {

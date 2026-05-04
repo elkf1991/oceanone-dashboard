@@ -1765,10 +1765,78 @@ td.prospect-pending {
 }
 
 /* ============================================
+   Contract Preparation Section
+   ============================================ */
+
+.contract-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.contract-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.contract-field label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.contract-field input {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--text);
+  background: var(--white);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.contract-field input:focus {
+  outline: none;
+  border-color: var(--ocean-light);
+  box-shadow: 0 0 0 3px rgba(45, 156, 180, 0.12);
+}
+
+.contract-generate-btn {
+  padding: 9px 22px;
+  background: var(--ocean-deep);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.contract-generate-btn:hover {
+  background: var(--ocean-mid);
+}
+
+.contract-generate-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* ============================================
    Responsive — Mobile
    ============================================ */
 
 @media (max-width: 768px) {
+  .contract-form-grid {
+    grid-template-columns: 1fr;
+  }
+
   .mobile-header {
     display: flex;
   }
