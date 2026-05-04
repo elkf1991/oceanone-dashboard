@@ -852,7 +852,7 @@ const MemberDetail = {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = engName.replace(/\s+/g, "_") + "_OceanOne_BUSINESS REFERRAL AGREEMENT.docx";
+    a.download = engName + "_OceanOne_BUSINESS REFERRAL AGREEMENT.docx";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
