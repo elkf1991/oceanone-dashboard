@@ -71,15 +71,21 @@ const Policies = {
     tableWrap.appendChild(table);
     wrapper.appendChild(tableWrap);
 
-    // Datalist for staff name autofill (shared by TR + Introducer inputs)
+    // Datalist — full names for TR
     const dl = document.createElement('datalist');
     dl.id = 'pol-staff-dl';
     this._staffNames().forEach(n => {
-      const o = document.createElement('option');
-      o.value = n;
-      dl.appendChild(o);
+      const o = document.createElement('option'); o.value = n; dl.appendChild(o);
     });
     wrapper.appendChild(dl);
+
+    // Datalist — English-only names for Introducer
+    const dlEn = document.createElement('datalist');
+    dlEn.id = 'pol-staff-en-dl';
+    this._staffEnglishNames().forEach(n => {
+      const o = document.createElement('option'); o.value = n; dlEn.appendChild(o);
+    });
+    wrapper.appendChild(dlEn);
 
     c.appendChild(wrapper);
   },
@@ -178,6 +184,22 @@ const Policies = {
     if (!this._members) return [];
     return Object.values(this._members)
       .map(m => m.fullName)
+      .filter(Boolean)
+      .sort();
+  },
+
+  // English portion only — strips CJK characters (used for Introducer datalist)
+  _staffEnglishNames() {
+    if (!this._members) return [];
+    return Object.values(this._members)
+      .map(m => {
+        if (!m.fullName) return null;
+        // Remove CJK unified ideographs and common CJK punctuation, then trim
+        const english = m.fullName
+          .replace(/[　-鿿豈-﫿（）【】「」『』〔〕]/g, '')
+          .trim();
+        return english || null;
+      })
       .filter(Boolean)
       .sort();
   },
@@ -372,13 +394,13 @@ const Policies = {
       return td;
     };
 
-    // ── text input ──
-    const textCell = (key, cls, useDatalist) => {
+    // ── text input ── (datalistId: pass datalist element id, or null)
+    const textCell = (key, cls, datalistId) => {
       const inp = document.createElement('input');
       inp.type = 'text';
       inp.className = 'pol-inp pol-inp--text';
       inp.value = d[key] || '';
-      if (useDatalist) inp.setAttribute('list', 'pol-staff-dl');
+      if (datalistId) inp.setAttribute('list', datalistId);
       inp.addEventListener('input', () => { d[key] = inp.value || null; });
       const td = document.createElement('td');
       td.className = cls;
@@ -425,10 +447,10 @@ const Policies = {
     tr.appendChild(dateCell('issue_date',        'pol-col-date'));
     tr.appendChild(dateCell('cooling_off_date',  'pol-col-date'));
     tr.appendChild(dateCell('payout_date',       'pol-col-date'));
-    tr.appendChild(textCell('tr',                'pol-col-staff',  true));
-    tr.appendChild(textCell('introducer',        'pol-col-staff',  true));
-    tr.appendChild(textCell('policy_number',     'pol-col-polno',  false));
-    tr.appendChild(textCell('policy_holder',     'pol-col-holder', false));
+    tr.appendChild(textCell('tr',            'pol-col-staff',  'pol-staff-dl'));
+    tr.appendChild(textCell('introducer',    'pol-col-staff',  'pol-staff-en-dl'));
+    tr.appendChild(textCell('policy_number', 'pol-col-polno',  null));
+    tr.appendChild(textCell('policy_holder', 'pol-col-holder', null));
 
     // Insurer (updates product dropdown when changed)
     tr.appendChild(selectCell('insurer', 'pol-col-insurer', Object.keys(this.INSURERS), (val, row) => {
