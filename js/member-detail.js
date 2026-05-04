@@ -148,6 +148,13 @@ const MemberDetail = {
       header.appendChild(fullName);
     }
 
+    if (member.staffId) {
+      const sidBadge = document.createElement("div");
+      sidBadge.className = "member-staff-id";
+      sidBadge.textContent = "Staff ID: " + member.staffId;
+      header.appendChild(sidBadge);
+    }
+
     const meta = document.createElement("div");
     meta.className = "member-meta";
 

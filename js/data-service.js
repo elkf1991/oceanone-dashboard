@@ -153,6 +153,7 @@ const DataService = {
 
     return {
       id:                 row.id,
+      staffId:            row.staff_id || null,
       displayName:        row.display_name,
       fullName:           row.full_name,
       contact:            row.contact,
