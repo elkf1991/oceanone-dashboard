@@ -1,1 +1,5 @@
 .DS_Store
+.gstack/
+
+~$*.docx
+~$*.xlsx
