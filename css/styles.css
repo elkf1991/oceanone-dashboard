@@ -1829,6 +1829,204 @@ td.prospect-pending {
 }
 
 /* ============================================
+   Policy Records Tab (簽單記錄)
+   ============================================ */
+
+.pol-page {
+  padding-bottom: 40px;
+}
+
+.pol-loading,
+.pol-error {
+  padding: 40px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.pol-error {
+  color: #b91c1c;
+}
+
+/* ── Summary bar ── */
+.pol-summary-bar {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  background: var(--ocean-pale);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+.pol-summary-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+}
+
+.pol-summary-label {
+  font-weight: 500;
+}
+
+.pol-summary-item strong {
+  color: var(--ocean-deep);
+  font-weight: 700;
+}
+
+/* ── Table wrapper ── */
+.pol-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--white);
+  box-shadow: var(--shadow);
+}
+
+/* ── Table ── */
+.pol-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 1400px;
+  font-size: 12px;
+  table-layout: fixed;
+}
+
+.pol-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--ocean-deep);
+}
+
+.pol-table thead th {
+  padding: 10px 8px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pol-table thead th:last-child {
+  border-right: none;
+}
+
+/* ── Column widths ── */
+.pol-col-date    { width: 108px; }
+.pol-col-staff   { width: 120px; }
+.pol-col-polno   { width: 110px; }
+.pol-col-holder  { width: 100px; }
+.pol-col-insurer { width: 90px;  }
+.pol-col-product { width: 170px; }
+.pol-col-freq    { width: 72px;  }
+.pol-col-cur     { width: 64px;  }
+.pol-col-prem    { width: 100px; }
+.pol-col-act     { width: 72px;  }
+
+/* ── Data rows ── */
+.pol-row td {
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid #eef2f5;
+  vertical-align: middle;
+  color: var(--text);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pol-row td:last-child {
+  border-right: none;
+}
+
+.pol-row:last-child td {
+  border-bottom: none;
+}
+
+.pol-row:hover td {
+  background: #f4f9fc;
+}
+
+/* Editing row highlight */
+.pol-row--editing td {
+  background: #fffbeb !important;
+}
+
+/* Add row highlight */
+.pol-row--add td {
+  background: #f0fdf4;
+}
+
+.pol-row--add:hover td {
+  background: #dcfce7;
+}
+
+/* ── Inputs inside cells ── */
+.pol-inp,
+.pol-sel {
+  width: 100%;
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  color: var(--text);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 4px 5px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.pol-inp:focus,
+.pol-sel:focus {
+  border-color: var(--ocean-light);
+  box-shadow: 0 0 0 2px rgba(45, 156, 180, 0.15);
+}
+
+.pol-inp--date {
+  padding: 3px 4px;
+  cursor: pointer;
+}
+
+.pol-inp--num {
+  text-align: right;
+}
+
+/* ── Action buttons ── */
+.pol-col-act {
+  white-space: nowrap;
+  text-align: center;
+}
+
+.pol-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 3px;
+  border-radius: 4px;
+  line-height: 1;
+  opacity: 0.7;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.pol-btn:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.pol-btn--add {
+  font-size: 16px;
+  opacity: 0.85;
+}
+
+/* ============================================
    Responsive — Mobile
    ============================================ */
 

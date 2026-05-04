@@ -175,6 +175,10 @@ const App = {
       this.setActiveNav("milestone");
       mainContent.classList.remove("main-content--fit-org");
       Milestone.render(mainContent, { members: this._members, orgTree: this._orgTree });
+    } else if (hash === "#policies") {
+      this.setActiveNav("policies");
+      mainContent.classList.remove("main-content--fit-org");
+      Policies.render(mainContent, { members: this._members });
     } else {
       window.location.hash = "#orgchart";
     }

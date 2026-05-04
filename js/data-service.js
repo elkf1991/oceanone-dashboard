@@ -90,6 +90,47 @@ const DataService = {
     if (error) throw new Error(error.message);
   },
 
+  // ─── Policy Records ───────────────────────────────────────────────────────
+
+  /**
+   * Fetch all policy records, newest sign_date first.
+   */
+  async fetchPolicies() {
+    const { data, error } = await supabase
+      .from("policies")
+      .select("*")
+      .order("sign_date", { ascending: false });
+    if (error) return { data: null, error: error.message };
+    return { data, error: null };
+  },
+
+  /**
+   * Insert or update a policy record.
+   * If `policy.id` is present → UPDATE; otherwise → INSERT.
+   */
+  async savePolicy(policy) {
+    const { id, ...fields } = policy;
+    let res;
+    if (id) {
+      res = await supabase.from("policies").update(fields).eq("id", id).select().single();
+    } else {
+      res = await supabase.from("policies").insert(fields).select().single();
+    }
+    if (res.error) return { data: null, error: res.error.message };
+    return { data: res.data, error: null };
+  },
+
+  /**
+   * Delete a policy record by id.
+   */
+  async deletePolicy(id) {
+    const { error } = await supabase.from("policies").delete().eq("id", id);
+    if (error) return { error: error.message };
+    return { error: null };
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+
   /**
    * Save 狀態 (status) for a teammate.
    */
