@@ -232,7 +232,7 @@ const PolicyDetail = {
   _recalcRow(tr, d, i) {
     const fortune = d.fortune_rates[i];
     const ocean   = fortune != null ? fortune * 0.78 : null;
-    const trBasic = ocean   != null ? ocean * d.basic_commission_rate : null;
+    const trBasic = fortune != null ? fortune * d.basic_commission_rate : null;
     const fmt = v => v != null ? (v * 100).toFixed(2) + '%' : '—';
     const oceanTd = tr.querySelector('[data-ocean]');
     const trTd    = tr.querySelector('[data-tr]');
