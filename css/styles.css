@@ -2341,6 +2341,96 @@ td.prospect-pending {
   justify-content: center;
 }
 
+/* ── Payment Record table ── */
+.pdet-payment-section {
+  margin-top: 28px;
+  margin-bottom: 24px;
+}
+
+.pdet-payment-empty {
+  padding: 20px;
+  background: var(--white);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.pdet-payment-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  background: var(--white);
+}
+
+.pdet-payment-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 980px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.pdet-payment-table thead {
+  background: var(--ocean-deep);
+}
+
+.pdet-payment-table thead th {
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  text-align: center;
+  vertical-align: middle;
+  line-height: 1.25;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pdet-payment-table thead th:last-child { border-right: none; }
+
+.pdet-payment-table thead .pay-sub {
+  display: block;
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+  margin-top: 2px;
+}
+
+.pdet-payment-table tbody td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid #eef2f5;
+  vertical-align: middle;
+  color: var(--text);
+}
+
+.pdet-payment-table tbody td:last-child   { border-right: none; }
+.pdet-payment-table tbody tr:last-child td { border-bottom: none; }
+
+.pdet-payment-row:nth-child(even) td { background: #f6f9fb; }
+.pdet-payment-row:nth-child(odd)  td { background: var(--white); }
+.pdet-payment-row:hover td { background: #eef6f9; }
+
+/* Column-specific styles */
+.pay-col-num    { width: 70px;  text-align: center; font-weight: 600; }
+.pay-col-period { width: 150px; text-align: center; font-family: monospace; font-size: 11px; }
+.pay-col-amt    { width: 100px; text-align: right; font-variant-numeric: tabular-nums; }
+.pay-col-date   { width: 130px; text-align: center; }
+
+.pdet-pay-amt {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.pdet-pay-date input[type="date"] {
+  width: 100%;
+  font-size: 11px;
+  padding: 3px 4px;
+}
+
 /* ── Save button ── */
 .pdet-save-wrap {
   margin-top: 24px;

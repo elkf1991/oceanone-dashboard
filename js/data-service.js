@@ -139,12 +139,14 @@ const DataService = {
   },
 
   /**
-   * Save commission data for a policy (basic_commission_rate, total_payments, fortune_rates).
+   * Save commission data for a policy. Accepts any subset of:
+   *   basic_commission_rate, total_payments, fortune_rates,
+   *   fortune_received_dates, ocean_received_dates, tr_received_dates
    */
-  async saveCommission(policyId, { basic_commission_rate, total_payments, fortune_rates }) {
+  async saveCommission(policyId, payload) {
     const { error } = await supabase
       .from("policies")
-      .update({ basic_commission_rate, total_payments, fortune_rates })
+      .update(payload)
       .eq("id", policyId);
     if (error) return { error: error.message };
     return { error: null };
