@@ -81,18 +81,26 @@ const PolicyDetail = {
     // Introducer (read-only)
     grid.appendChild(this._staticItem('Introducer', policy.introducer || '—'));
 
-    // Basic Commission Rate (editable %)
+    // Basic Commission Rate (editable %, text input preserves trailing zeros)
     const rateRow = this._fieldItem('Basic Commission Rate');
     const rateInp = document.createElement('input');
-    rateInp.type = 'number'; rateInp.min = '0'; rateInp.max = '100'; rateInp.step = '0.01';
+    rateInp.type = 'text';
+    rateInp.inputMode = 'decimal';
     rateInp.className = 'pdet-inp pdet-inp--sm';
-    rateInp.value = (d.basic_commission_rate * 100).toFixed(2);
+    rateInp.value = this._formatPct(d.basic_commission_rate);
     const rateSfx = document.createElement('span');
     rateSfx.className = 'pdet-inp-sfx'; rateSfx.textContent = '%';
     rateRow.valueEl.appendChild(rateInp);
     rateRow.valueEl.appendChild(rateSfx);
     rateInp.addEventListener('input', () => {
-      d.basic_commission_rate = rateInp.value !== '' ? parseFloat(rateInp.value) / 100 : 0.50;
+      const raw = rateInp.value.trim();
+      // Allow only valid decimal input; revert otherwise
+      if (raw !== '' && !/^[0-9]*\.?[0-9]*$/.test(raw)) {
+        rateInp.value = this._formatPct(d.basic_commission_rate);
+        return;
+      }
+      const num = parseFloat(raw);
+      d.basic_commission_rate = !isNaN(num) ? num / 100 : 0.50;
       this._recalcAll(tbody, d);
     });
     grid.appendChild(rateRow.item);
@@ -219,11 +227,12 @@ const PolicyDetail = {
       labelTd.textContent = `Year ${i + 1}`;
       tr.appendChild(labelTd);
 
-      // Fortune — editable
+      // Fortune — editable (text input preserves trailing zeros)
       const fortuneTd = document.createElement('td');
       fortuneTd.className = 'pdet-col-rate';
       const fortuneInp = document.createElement('input');
-      fortuneInp.type = 'number'; fortuneInp.min = '0'; fortuneInp.step = '0.01';
+      fortuneInp.type = 'text';
+      fortuneInp.inputMode = 'decimal';
       fortuneInp.className = 'pdet-inp pdet-inp--rate';
       fortuneInp.value = this._formatPct(d.fortune_rates[i]);
       fortuneInp.placeholder = '0.00';
@@ -234,7 +243,14 @@ const PolicyDetail = {
       fortuneWrap.appendChild(fortuneInp); fortuneWrap.appendChild(fortuneSfx);
       fortuneTd.appendChild(fortuneWrap);
       fortuneInp.addEventListener('input', () => {
-        d.fortune_rates[i] = fortuneInp.value !== '' ? parseFloat(fortuneInp.value) / 100 : null;
+        const raw = fortuneInp.value.trim();
+        // Allow only valid decimal input; revert otherwise
+        if (raw !== '' && !/^[0-9]*\.?[0-9]*$/.test(raw)) {
+          fortuneInp.value = this._formatPct(d.fortune_rates[i]);
+          return;
+        }
+        const num = parseFloat(raw);
+        d.fortune_rates[i] = !isNaN(num) ? num / 100 : null;
         this._recalcRow(tr, d, i);
       });
       tr.appendChild(fortuneTd);
