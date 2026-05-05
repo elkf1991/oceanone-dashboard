@@ -218,14 +218,19 @@ const PolicyDetail = {
     </tr>`;
     table.appendChild(thead);
 
-    // Tbody — 10 year rows. By default Year 7–10 are hidden behind a "Show All Years"
-    // toggle, but auto-expand if any of those years already has a value.
-    const hasLateData = d.fortune_rates.slice(6).some(v => v != null && v !== '');
+    // Tbody — 10 year rows. Years where Fortune is blank or 0% are hidden by default;
+    // a "Show All Years" toggle reveals them and switches to "Hide Years with 0%".
+    const isEmpty = (i) => {
+      const v = d.fortune_rates[i];
+      if (v == null || v === '') return true;
+      const num = parseFloat(v);
+      return isNaN(num) || num === 0;
+    };
     const tbody = document.createElement('tbody');
     for (let i = 0; i < 10; i++) {
       const tr = document.createElement('tr');
       tr.className = 'pdet-year-row';
-      if (i >= 6 && !hasLateData) tr.classList.add('pdet-year-row--hidden');
+      if (isEmpty(i)) tr.classList.add('pdet-year-row--hidden');
 
       // Year label
       const labelTd = document.createElement('td');
@@ -276,26 +281,37 @@ const PolicyDetail = {
       tbody.appendChild(tr);
     }
 
-    // "Show All Years" toggle row (only if Year 7–10 are currently hidden)
-    if (!hasLateData) {
-      const toggleTr = document.createElement('tr');
-      toggleTr.className = 'pdet-show-all-row';
-      const toggleTd = document.createElement('td');
-      toggleTd.colSpan = 4;
-      const toggleBtn = document.createElement('button');
-      toggleBtn.type = 'button';
-      toggleBtn.className = 'pdet-show-all-btn';
-      toggleBtn.textContent = 'Show All Years ▾';
-      toggleBtn.addEventListener('click', () => {
-        tbody.querySelectorAll('.pdet-year-row--hidden').forEach(row => {
-          row.classList.remove('pdet-year-row--hidden');
+    // Toggle row — switches between "Show All Years" and "Hide Years with 0%"
+    const toggleTr = document.createElement('tr');
+    toggleTr.className = 'pdet-show-all-row';
+    const toggleTd = document.createElement('td');
+    toggleTd.colSpan = 4;
+    const toggleBtn = document.createElement('button');
+    toggleBtn.type = 'button';
+    toggleBtn.className = 'pdet-show-all-btn';
+    let expanded = false;
+    const setLabel = () => {
+      toggleBtn.textContent = expanded ? 'Hide Years with 0% ▴' : 'Show All Years ▾';
+    };
+    setLabel();
+    toggleBtn.addEventListener('click', () => {
+      expanded = !expanded;
+      if (expanded) {
+        // Reveal every hidden year
+        tbody.querySelectorAll('.pdet-year-row--hidden').forEach(r => {
+          r.classList.remove('pdet-year-row--hidden');
         });
-        toggleTr.style.display = 'none';
-      });
-      toggleTd.appendChild(toggleBtn);
-      toggleTr.appendChild(toggleTd);
-      tbody.appendChild(toggleTr);
-    }
+      } else {
+        // Re-hide years whose Fortune is now blank/0%
+        for (let i = 0; i < 10; i++) {
+          tbody.rows[i].classList.toggle('pdet-year-row--hidden', isEmpty(i));
+        }
+      }
+      setLabel();
+    });
+    toggleTd.appendChild(toggleBtn);
+    toggleTr.appendChild(toggleTd);
+    tbody.appendChild(toggleTr);
 
     table.appendChild(tbody);
     tableWrap.appendChild(table);
