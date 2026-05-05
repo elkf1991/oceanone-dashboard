@@ -2294,6 +2294,38 @@ td.prospect-pending {
   border-bottom: none;
 }
 
+/* Hide Year 7–10 by default */
+.pdet-year-row--hidden {
+  display: none;
+}
+
+/* "Show All Years" toggle row */
+.pdet-show-all-row td {
+  padding: 0;
+  background: var(--white);
+  border-top: 1px solid var(--border);
+}
+
+.pdet-show-all-btn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  border: none;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ocean-mid);
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.pdet-show-all-btn:hover {
+  background: var(--ocean-pale);
+  color: var(--ocean-deep);
+}
+
 /* Auto-calculated cells */
 .pdet-auto {
   color: var(--text-muted);
