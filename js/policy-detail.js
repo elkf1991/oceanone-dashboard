@@ -233,7 +233,14 @@ const PolicyDetail = {
     const fortune = d.fortune_rates[i];
     const ocean   = fortune != null ? fortune * 0.78 : null;
     const trBasic = fortune != null ? fortune * d.basic_commission_rate : null;
-    const fmt = v => v != null ? (v * 100).toFixed(2) + '%' : '—';
+
+    // Match precision of the Fortune input: 3dp if user entered 3+ decimals, else 2dp
+    const fortuneInp = tr.querySelector('.pdet-inp--rate');
+    const raw = fortuneInp ? fortuneInp.value : '';
+    const decimals = raw.includes('.') ? raw.split('.')[1].length : 0;
+    const precision = decimals >= 3 ? 3 : 2;
+
+    const fmt = v => v != null ? (v * 100).toFixed(precision) + '%' : '—';
     const oceanTd = tr.querySelector('[data-ocean]');
     const trTd    = tr.querySelector('[data-tr]');
     if (oceanTd) oceanTd.textContent = fmt(ocean);
