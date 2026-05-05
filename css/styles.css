@@ -1935,9 +1935,9 @@ td.prospect-pending {
 .pol-table {
   border-collapse: collapse;
   width: 100%;
-  min-width: 1874px;
   font-size: 12px;
-  table-layout: fixed;
+  table-layout: auto;   /* columns size to content */
+  white-space: nowrap;  /* keep each cell on one line; table scrolls horizontally */
 }
 
 .pol-table thead {
@@ -1961,18 +1961,18 @@ td.prospect-pending {
   border-right: none;
 }
 
-/* ── Column widths ── */
-.pol-col-date    { width: 108px; }
-.pol-col-staff   { width: 150px; }
-.pol-col-polno   { width: 140px; }
-.pol-col-holder  { width: 160px; }
-.pol-col-insurer { width: 100px; }
-.pol-col-product { width: 200px; }
-.pol-col-freq    { width: 76px;  }
-.pol-col-term    { width: 82px;  }
-.pol-col-cur     { width: 68px;  }
-.pol-col-prem    { width: 110px; }
-.pol-col-act     { width: 80px;  }
+/* ── Column min-widths (auto layout grows each column to fit content) ── */
+.pol-col-date    { min-width: 100px; }
+.pol-col-staff   { min-width: 120px; }
+.pol-col-polno   { min-width: 100px; }
+.pol-col-holder  { min-width: 110px; }
+.pol-col-insurer { min-width:  80px; }
+.pol-col-product { min-width: 130px; }
+.pol-col-freq    { min-width:  68px; }
+.pol-col-term    { min-width:  68px; }
+.pol-col-cur     { min-width:  56px; }
+.pol-col-prem    { min-width:  90px; }
+.pol-col-act     { min-width:  72px; }
 
 /* ── Data rows ── */
 .pol-row td {
@@ -1982,8 +1982,6 @@ td.prospect-pending {
   vertical-align: middle;
   color: var(--text);
   font-size: 12px;
-  white-space: normal;
-  word-break: break-word;
 }
 
 .pol-row td:last-child {
