@@ -155,8 +155,18 @@ const PayrollDetail = {
   // ─── Payslip generation ─────────────────────────────────────────────────────
 
   async _generatePayslip({ staffName, staffId, payrollMonth, introducer, rows, total, button }) {
-    if (typeof window.PizZip === 'undefined' || typeof window.docxtemplater === 'undefined') {
-      alert('Document libraries not loaded yet. Please refresh the page and try again.');
+    console.log('[Payslip] Starting generation', {
+      PizZip: typeof window.PizZip,
+      docxtemplater: typeof window.docxtemplater,
+      docxtemplater_default: window.docxtemplater ? typeof window.docxtemplater.default : 'N/A',
+    });
+
+    if (typeof window.PizZip === 'undefined') {
+      alert('Diagnostic: PizZip library not loaded. Refresh the page and check the network tab for blocked scripts.');
+      return;
+    }
+    if (typeof window.docxtemplater === 'undefined') {
+      alert('Diagnostic: docxtemplater library not loaded. Refresh the page and check the network tab for blocked scripts.');
       return;
     }
 
@@ -166,20 +176,27 @@ const PayrollDetail = {
 
     try {
       // Fetch the template from the dashboard's templates folder
+      console.log('[Payslip] Fetching templates/payslip-template.docx');
       const res = await fetch('templates/payslip-template.docx', { cache: 'no-store' });
-      if (!res.ok) throw new Error(`Could not load template (HTTP ${res.status})`);
+      console.log('[Payslip] Fetch status:', res.status, 'content-type:', res.headers.get('content-type'));
+      if (!res.ok) throw new Error(`Could not load template (HTTP ${res.status} ${res.statusText})`);
       const arrayBuffer = await res.arrayBuffer();
+      console.log('[Payslip] Template loaded:', arrayBuffer.byteLength, 'bytes');
 
       const zip = new PizZip(arrayBuffer);
+      console.log('[Payslip] PizZip loaded');
+
       const Doc = window.docxtemplater.default || window.docxtemplater;
+      console.log('[Payslip] Constructor type:', typeof Doc);
+
       const doc = new Doc(zip, {
         paragraphLoop: true,
         linebreaks:    true,
       });
+      console.log('[Payslip] docxtemplater instance created');
 
       const fmt = v => Number(v).toLocaleString('en-HK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-      doc.render({
+      const data = {
         staff_name:    staffName    || introducer || '',
         staff_id:      staffId != null && staffId !== '—' ? String(staffId) : '',
         position:      'Business Introducer',
@@ -190,12 +207,17 @@ const PayrollDetail = {
           fee:         fmt(r.amount),
         })),
         total: fmt(total),
-      });
+      };
+      console.log('[Payslip] Render data:', data);
+
+      doc.render(data);
+      console.log('[Payslip] Render complete');
 
       const blob = doc.getZip().generate({
         type: 'blob',
         mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       });
+      console.log('[Payslip] Generated blob:', blob.size, 'bytes');
 
       const safeName = (staffName || introducer || 'Payslip')
         .replace(/[^\w\s-]/g, '').replace(/\s+/g, '_');
@@ -213,12 +235,24 @@ const PayrollDetail = {
       button.innerHTML = '✓ Generated';
       setTimeout(() => { button.innerHTML = originalLabel; button.disabled = false; }, 2000);
     } catch (err) {
-      console.error('Payslip generation error:', err);
+      console.error('[Payslip] Generation error:', err);
+      console.error('[Payslip] Error properties:', err && err.properties);
       let msg = 'Failed to generate payslip.\n\n';
       if (err && err.properties && Array.isArray(err.properties.errors) && err.properties.errors.length) {
-        msg += err.properties.errors.map(e => `• ${e.message}${e.properties && e.properties.context ? ` (near: ${e.properties.context})` : ''}`).join('\n');
+        msg += 'Template errors (' + err.properties.errors.length + '):\n';
+        msg += err.properties.errors.map(e => {
+          let line = `• ${e.message}`;
+          if (e.properties) {
+            if (e.properties.xtag)    line += `\n  tag: ${e.properties.xtag}`;
+            if (e.properties.context) line += `\n  near: "${String(e.properties.context).slice(0, 100)}"`;
+            if (e.properties.explanation) line += `\n  explain: ${e.properties.explanation}`;
+          }
+          return line;
+        }).join('\n\n');
       } else {
-        msg += err && err.message ? err.message : String(err);
+        msg += (err && err.name ? err.name + ': ' : '');
+        msg += (err && err.message ? err.message : String(err));
+        if (err && err.stack) msg += '\n\n(See browser console for full stack trace.)';
       }
       alert(msg);
       button.innerHTML = originalLabel;
