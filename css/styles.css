@@ -1935,7 +1935,7 @@ td.prospect-pending {
 .pol-table {
   border-collapse: collapse;
   width: 100%;
-  min-width: 1742px;
+  min-width: 1874px;
   font-size: 12px;
   table-layout: fixed;
 }
@@ -1965,10 +1965,11 @@ td.prospect-pending {
 .pol-col-date    { width: 108px; }
 .pol-col-staff   { width: 150px; }
 .pol-col-polno   { width: 140px; }
-.pol-col-holder  { width: 110px; }
+.pol-col-holder  { width: 160px; }
 .pol-col-insurer { width: 100px; }
 .pol-col-product { width: 200px; }
 .pol-col-freq    { width: 76px;  }
+.pol-col-term    { width: 82px;  }
 .pol-col-cur     { width: 68px;  }
 .pol-col-prem    { width: 110px; }
 .pol-col-act     { width: 80px;  }

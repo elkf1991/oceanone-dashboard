@@ -122,6 +122,7 @@ const Policies = {
       insurer:          '保險公司',
       product:          '產品',
       payment_freq:     '年繳/月繳',
+      payment_term:     '供款年期',
       currency:         '保費貨幣',
       premium:          '每期保費',
     };
@@ -227,6 +228,7 @@ const Policies = {
       <th class="pol-col-insurer">保險公司</th>
       <th class="pol-col-product">產品</th>
       <th class="pol-col-freq">年/月繳</th>
+      <th class="pol-col-term">供款年期</th>
       <th class="pol-col-cur">貨幣</th>
       <th class="pol-col-prem">每期保費</th>
       <th class="pol-col-act"></th>
@@ -277,8 +279,9 @@ const Policies = {
       ['pol-col-holder',  p.policy_holder    || ''],
       ['pol-col-insurer', p.insurer          || ''],
       ['pol-col-product', p.product          || ''],
-      ['pol-col-freq',    p.payment_freq     || ''],
-      ['pol-col-cur',     p.currency         || ''],
+      ['pol-col-freq',    p.payment_freq      || ''],
+      ['pol-col-term',    p.payment_term != null ? String(p.payment_term) : ''],
+      ['pol-col-cur',     p.currency          || ''],
       ['pol-col-prem',    p.premium != null ? Number(p.premium).toLocaleString('en-HK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''],
     ];
 
@@ -432,16 +435,16 @@ const Policies = {
       return td;
     };
 
-    // ── number input ──
-    const numberCell = (key, cls) => {
+    // ── number input (isInt=true → step 1, parseInt) ──
+    const numberCell = (key, cls, isInt) => {
       const inp = document.createElement('input');
       inp.type = 'number';
       inp.className = 'pol-inp pol-inp--num';
       inp.value = d[key] != null ? d[key] : '';
-      inp.step = '0.01';
+      inp.step = isInt ? '1' : '0.01';
       inp.min = '0';
       inp.addEventListener('input', () => {
-        d[key] = inp.value !== '' ? parseFloat(inp.value) : null;
+        d[key] = inp.value !== '' ? (isInt ? parseInt(inp.value, 10) : parseFloat(inp.value)) : null;
       });
       const td = document.createElement('td');
       td.className = cls;
@@ -484,9 +487,10 @@ const Policies = {
     productTd.appendChild(productSel);
     tr.appendChild(productTd);
 
-    tr.appendChild(selectCell('payment_freq', 'pol-col-freq', this.PAYMENT_FREQS));
-    tr.appendChild(selectCell('currency',     'pol-col-cur',  this.CURRENCIES));
-    tr.appendChild(numberCell('premium',      'pol-col-prem'));
+    tr.appendChild(selectCell('payment_freq',  'pol-col-freq', this.PAYMENT_FREQS));
+    tr.appendChild(numberCell('payment_term',  'pol-col-term', true));
+    tr.appendChild(selectCell('currency',      'pol-col-cur',  this.CURRENCIES));
+    tr.appendChild(numberCell('premium',       'pol-col-prem', false));
 
     // Empty actions cell — buttons appended by caller
     const act = document.createElement('td');
