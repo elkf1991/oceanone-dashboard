@@ -433,11 +433,11 @@ const PolicyDetail = {
     thead.innerHTML = `<tr>
       <th class="pay-col-num">Payment #</th>
       <th class="pay-col-period">Payment Period</th>
-      <th class="pay-col-amt">Fortune<br><span class="pay-sub">Amount</span></th>
+      <th class="pay-col-amt">Fortune<br><span class="pay-sub">Amount (HKD)</span></th>
       <th class="pay-col-date">Fortune<br><span class="pay-sub">Received Date</span></th>
-      <th class="pay-col-amt">OceanOne<br><span class="pay-sub">Amount</span></th>
+      <th class="pay-col-amt">OceanOne<br><span class="pay-sub">Amount (HKD)</span></th>
       <th class="pay-col-date">OceanOne<br><span class="pay-sub">Received Date</span></th>
-      <th class="pay-col-amt">TR<br><span class="pay-sub">Amount</span></th>
+      <th class="pay-col-amt">TR<br><span class="pay-sub">Amount (HKD)</span></th>
       <th class="pay-col-date">TR<br><span class="pay-sub">Received Date</span></th>
     </tr>`;
     table.appendChild(thead);
