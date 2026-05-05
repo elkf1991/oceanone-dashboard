@@ -2466,6 +2466,154 @@ td.prospect-pending {
 .pdet-save-btn:disabled { opacity: 0.6; cursor: default; }
 
 /* ============================================
+   Payroll 出糧
+   ============================================ */
+
+.payroll-page {
+  max-width: 900px;
+  padding-bottom: 40px;
+}
+
+.payroll-loading,
+.payroll-error,
+.payroll-empty {
+  padding: 28px;
+  font-size: 14px;
+  color: var(--text-muted);
+  background: var(--white);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.payroll-error { color: #b91c1c; }
+
+.payroll-selector-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 18px;
+}
+
+.payroll-selector-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.3px;
+}
+
+.payroll-month-select {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ocean-deep);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 14px;
+  min-width: 140px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.payroll-month-select:hover  { border-color: var(--ocean-light); }
+.payroll-month-select:focus  {
+  outline: none;
+  border-color: var(--ocean-light);
+  box-shadow: 0 0 0 2px rgba(45, 156, 180, 0.15);
+}
+
+/* Payroll table */
+.payroll-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  background: var(--white);
+}
+
+.payroll-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+}
+
+.payroll-table thead {
+  background: var(--ocean-deep);
+}
+
+.payroll-table thead th {
+  padding: 11px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  text-align: left;
+}
+
+.payroll-table thead th.payroll-col-amt   { text-align: right; }
+.payroll-table thead th.payroll-col-count { text-align: center; }
+.payroll-table thead th.payroll-col-act   { width: 100px; }
+
+.payroll-row td {
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  color: var(--text);
+}
+
+.payroll-row:last-child td { border-bottom: none; }
+.payroll-row:hover td { background: #f4f9fc; }
+
+.payroll-col-name  { font-weight: 600; }
+.payroll-col-amt   { text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; }
+.payroll-col-count { text-align: center; color: var(--text-muted); }
+.payroll-col-act   { text-align: right; }
+
+.payroll-detail-btn {
+  padding: 5px 14px;
+  background: var(--ocean-deep);
+  color: var(--white);
+  border: none;
+  border-radius: 6px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.payroll-detail-btn:hover { background: var(--ocean-mid); }
+
+.payroll-total-row td {
+  background: var(--ocean-pale);
+  border-top: 2px solid var(--ocean-mid);
+  border-bottom: none !important;
+  padding: 12px 14px;
+  font-size: 14px;
+  color: var(--ocean-deep);
+}
+
+/* Payroll detail page (placeholder) */
+.payroll-detail-page {
+  max-width: 900px;
+}
+
+.payroll-detail-placeholder {
+  padding: 60px 20px;
+  background: var(--white);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* ============================================
    Responsive — Mobile
    ============================================ */
 

@@ -184,6 +184,17 @@ const App = {
       mainContent.classList.remove("main-content--fit-org");
       const policyId = decodeURIComponent(hash.slice("#policy/".length));
       PolicyDetail.render(mainContent, policyId, { members: this._members });
+    } else if (hash === "#payroll") {
+      this.setActiveNav("payroll");
+      mainContent.classList.remove("main-content--fit-org");
+      Payroll.render(mainContent, { members: this._members });
+    } else if (hash.startsWith("#payroll/")) {
+      this.setActiveNav("payroll");
+      mainContent.classList.remove("main-content--fit-org");
+      const parts = hash.slice("#payroll/".length).split("/");
+      const month = parts[0] || "";
+      const introducer = decodeURIComponent(parts[1] || "");
+      PayrollDetail.render(mainContent, month, introducer, { members: this._members });
     } else {
       window.location.hash = "#orgchart";
     }
