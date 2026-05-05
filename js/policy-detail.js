@@ -467,6 +467,7 @@ const PolicyDetail = {
       fAmtTd.className = 'pay-col-amt pdet-pay-amt';
       fAmtTd.dataset.amtFortune = i;
       fAmtTd.textContent = this._formatAmt(amts.fortune);
+      if (d.fortune_received_dates[i]) fAmtTd.classList.add('pdet-pay-amt--received');
       tr.appendChild(fAmtTd);
 
       // Fortune Received Date
@@ -477,6 +478,7 @@ const PolicyDetail = {
       oAmtTd.className = 'pay-col-amt pdet-pay-amt';
       oAmtTd.dataset.amtOcean = i;
       oAmtTd.textContent = this._formatAmt(amts.ocean);
+      if (d.ocean_received_dates[i]) oAmtTd.classList.add('pdet-pay-amt--received');
       tr.appendChild(oAmtTd);
 
       // OceanOne Received Date
@@ -487,6 +489,7 @@ const PolicyDetail = {
       trAmtTd.className = 'pay-col-amt pdet-pay-amt';
       trAmtTd.dataset.amtTr = i;
       trAmtTd.textContent = this._formatAmt(amts.tr);
+      if (d.tr_received_dates[i]) trAmtTd.classList.add('pdet-pay-amt--received');
       tr.appendChild(trAmtTd);
 
       // TR Received Date
@@ -581,9 +584,23 @@ const PolicyDetail = {
     inp.className = 'pdet-inp pdet-inp--date';
     while (d[key].length <= i) d[key].push(null);
     inp.value = d[key][i] || '';
+
+    // Map this date column to its sibling amount cell
+    const amtSelector = {
+      fortune_received_dates: '[data-amt-fortune]',
+      ocean_received_dates:   '[data-amt-ocean]',
+      tr_received_dates:      '[data-amt-tr]',
+    }[key];
+
     inp.addEventListener('change', () => {
       while (d[key].length <= i) d[key].push(null);
       d[key][i] = inp.value || null;
+      // Toggle green tint on the matching amount cell
+      const row = td.parentElement;
+      if (row && amtSelector) {
+        const amtCell = row.querySelector(amtSelector);
+        if (amtCell) amtCell.classList.toggle('pdet-pay-amt--received', !!inp.value);
+      }
     });
     td.appendChild(inp);
     return td;

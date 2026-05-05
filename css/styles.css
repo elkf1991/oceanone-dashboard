@@ -2431,6 +2431,13 @@ td.prospect-pending {
   color: var(--text);
 }
 
+/* Light-green highlight when the corresponding party's date is filled */
+.pdet-payment-row td.pdet-pay-amt--received {
+  background: #d1fae5 !important;
+  color: #065f46;
+  font-weight: 600;
+}
+
 .pdet-pay-date input[type="date"] {
   font-size: 11px;
   padding: 3px 4px;
