@@ -10,12 +10,18 @@ const PolicyDetail = {
   async render(container, policyId, { members }) {
     container.innerHTML = '<div class="pdet-loading">Loading…</div>';
 
-    const { data: policy, error } = await DataService.fetchPolicy(policyId);
-    if (error || !policy) {
+    // Fetch this policy + all policies (for the Copy From dropdown) in parallel
+    const [singleRes, allRes] = await Promise.all([
+      DataService.fetchPolicy(policyId),
+      DataService.fetchPolicies(),
+    ]);
+
+    if (singleRes.error || !singleRes.data) {
       container.innerHTML = '<div class="pdet-error">Policy not found.</div>';
       return;
     }
-    this._draw(container, policy);
+    const otherPolicies = (allRes.data || []).filter(p => p.id !== policyId);
+    this._draw(container, singleRes.data, otherPolicies);
   },
 
   // ─── Auto-calculate Total No. of Payments ───────────────────────────────────
@@ -36,7 +42,7 @@ const PolicyDetail = {
 
   // ─── Render ─────────────────────────────────────────────────────────────────
 
-  _draw(container, policy) {
+  _draw(container, policy, otherPolicies) {
     container.innerHTML = '';
 
     // Working data copy (all rates stored as decimals, e.g. 0.50 = 50%)
@@ -118,10 +124,72 @@ const PolicyDetail = {
     const tableSection = document.createElement('div');
     tableSection.className = 'pdet-table-section';
 
+    // Section header — title on the left, Copy From + Clear All on the right
+    const tableHeader = document.createElement('div');
+    tableHeader.className = 'pdet-table-header';
+
     const tableTitle = document.createElement('h3');
     tableTitle.className = 'pdet-section-title';
     tableTitle.textContent = 'Commission Rate';
-    tableSection.appendChild(tableTitle);
+    tableHeader.appendChild(tableTitle);
+
+    const toolbar = document.createElement('div');
+    toolbar.className = 'pdet-toolbar';
+
+    // Copy From label + dropdown
+    const copyLabel = document.createElement('span');
+    copyLabel.className = 'pdet-toolbar-label';
+    copyLabel.textContent = 'Copy From:';
+    toolbar.appendChild(copyLabel);
+
+    const copySelect = document.createElement('select');
+    copySelect.className = 'pdet-copy-select';
+    const placeholderOpt = document.createElement('option');
+    placeholderOpt.value = '';
+    placeholderOpt.textContent = '— Select policy —';
+    copySelect.appendChild(placeholderOpt);
+
+    (otherPolicies || []).forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      const label = [
+        p.policy_number || '(no number)',
+        p.product       || '—',
+        p.policy_holder || '—',
+      ].join(' - ');
+      opt.textContent = label;
+      copySelect.appendChild(opt);
+    });
+
+    copySelect.addEventListener('change', () => {
+      const sourceId = copySelect.value;
+      copySelect.value = ''; // reset for re-use
+      if (!sourceId) return;
+      const source = (otherPolicies || []).find(p => p.id === sourceId);
+      if (!source) return;
+      const sourceRates = Array.isArray(source.fortune_rates) ? source.fortune_rates : [];
+      for (let i = 0; i < 10; i++) {
+        d.fortune_rates[i] = sourceRates[i] != null ? Number(sourceRates[i]) : null;
+      }
+      this._refreshFortuneInputs(tbody, d);
+      this._recalcAll(tbody, d);
+    });
+    toolbar.appendChild(copySelect);
+
+    // Clear All button
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.className = 'pdet-clear-btn';
+    clearBtn.textContent = 'Clear All';
+    clearBtn.addEventListener('click', () => {
+      for (let i = 0; i < 10; i++) d.fortune_rates[i] = null;
+      this._refreshFortuneInputs(tbody, d);
+      this._recalcAll(tbody, d);
+    });
+    toolbar.appendChild(clearBtn);
+
+    tableHeader.appendChild(toolbar);
+    tableSection.appendChild(tableHeader);
 
     const tableWrap = document.createElement('div');
     tableWrap.className = 'pdet-table-wrap';
@@ -157,7 +225,7 @@ const PolicyDetail = {
       const fortuneInp = document.createElement('input');
       fortuneInp.type = 'number'; fortuneInp.min = '0'; fortuneInp.step = '0.01';
       fortuneInp.className = 'pdet-inp pdet-inp--rate';
-      fortuneInp.value = d.fortune_rates[i] != null ? (d.fortune_rates[i] * 100).toFixed(2) : '';
+      fortuneInp.value = this._formatPct(d.fortune_rates[i]);
       fortuneInp.placeholder = '0.00';
       const fortuneSfx = document.createElement('span');
       fortuneSfx.className = 'pdet-inp-sfx'; fortuneSfx.textContent = '%';
@@ -222,6 +290,26 @@ const PolicyDetail = {
   },
 
   // ─── Recalculate helpers ─────────────────────────────────────────────────────
+
+  // Update Fortune inputs from d.fortune_rates (used by Copy From / Clear All)
+  _refreshFortuneInputs(tbody, d) {
+    for (let i = 0; i < 10; i++) {
+      const tr = tbody.rows[i];
+      const inp = tr.querySelector('.pdet-inp--rate');
+      if (inp) inp.value = this._formatPct(d.fortune_rates[i]);
+    }
+  },
+
+  // Format decimal as % with up to 4dp, trailing zeros stripped, min 2dp
+  _formatPct(v) {
+    if (v == null || isNaN(v)) return '';
+    let s = (Number(v) * 100).toFixed(4);
+    // Strip trailing zeros but keep at least 2 decimals
+    while (s.includes('.') && s.endsWith('0') && s.split('.')[1].length > 2) {
+      s = s.slice(0, -1);
+    }
+    return s;
+  },
 
   _recalcAll(tbody, d) {
     for (let i = 0; i < 10; i++) {
