@@ -45,14 +45,17 @@ const PolicyDetail = {
   _draw(container, policy, otherPolicies) {
     container.innerHTML = '';
 
-    // Working data copy (all rates stored as decimals, e.g. 0.50 = 50%)
+    // Working data copy.
+    // basic_commission_rate stored as numeric decimal (0.50 = 50%).
+    // fortune_rates stored as PERCENTAGE STRINGS ("6.720", "5.5", null) to preserve
+    // user-typed precision (trailing zeros). Old number-format records are migrated
+    // on the fly by _normalizeFortuneRates.
     const auto = this._autoPayments(policy);
     const d = {
       basic_commission_rate: policy.basic_commission_rate != null ? Number(policy.basic_commission_rate) : 0.50,
       total_payments:        policy.total_payments != null ? policy.total_payments : auto,
-      fortune_rates:         Array.isArray(policy.fortune_rates) ? [...policy.fortune_rates] : [],
+      fortune_rates:         this._normalizeFortuneRates(policy.fortune_rates),
     };
-    while (d.fortune_rates.length < 10) d.fortune_rates.push(null);
 
     const page = document.createElement('div');
     page.className = 'pdet-page';
@@ -175,9 +178,9 @@ const PolicyDetail = {
       if (!sourceId) return;
       const source = (otherPolicies || []).find(p => p.id === sourceId);
       if (!source) return;
-      const sourceRates = Array.isArray(source.fortune_rates) ? source.fortune_rates : [];
+      const sourceRates = this._normalizeFortuneRates(source.fortune_rates);
       for (let i = 0; i < 10; i++) {
-        d.fortune_rates[i] = sourceRates[i] != null ? Number(sourceRates[i]) : null;
+        d.fortune_rates[i] = sourceRates[i];
       }
       this._refreshFortuneInputs(tbody, d);
       this._recalcAll(tbody, d);
@@ -234,7 +237,7 @@ const PolicyDetail = {
       fortuneInp.type = 'text';
       fortuneInp.inputMode = 'decimal';
       fortuneInp.className = 'pdet-inp pdet-inp--rate';
-      fortuneInp.value = this._formatPct(d.fortune_rates[i]);
+      fortuneInp.value = d.fortune_rates[i] != null ? d.fortune_rates[i] : '';
       fortuneInp.placeholder = '0.00';
       const fortuneSfx = document.createElement('span');
       fortuneSfx.className = 'pdet-inp-sfx'; fortuneSfx.textContent = '%';
@@ -243,14 +246,14 @@ const PolicyDetail = {
       fortuneWrap.appendChild(fortuneInp); fortuneWrap.appendChild(fortuneSfx);
       fortuneTd.appendChild(fortuneWrap);
       fortuneInp.addEventListener('input', () => {
-        const raw = fortuneInp.value.trim();
-        // Allow only valid decimal input; revert otherwise
+        const raw = fortuneInp.value;
+        // Allow only valid decimal input (digits with optional dot); revert otherwise
         if (raw !== '' && !/^[0-9]*\.?[0-9]*$/.test(raw)) {
-          fortuneInp.value = this._formatPct(d.fortune_rates[i]);
+          fortuneInp.value = d.fortune_rates[i] != null ? d.fortune_rates[i] : '';
           return;
         }
-        const num = parseFloat(raw);
-        d.fortune_rates[i] = !isNaN(num) ? num / 100 : null;
+        // Store the typed string verbatim — preserves trailing zeros across save+reload
+        d.fortune_rates[i] = raw === '' ? null : raw;
         this._recalcRow(tr, d, i);
       });
       tr.appendChild(fortuneTd);
@@ -307,12 +310,39 @@ const PolicyDetail = {
 
   // ─── Recalculate helpers ─────────────────────────────────────────────────────
 
+  // Convert any fortune_rates payload to percentage-string array of length 10.
+  // Old records contain decimals like 0.0672 (= 6.72%); convert by multiplying ×100,
+  // then strip trailing zeros while preserving ≥2dp.
+  _normalizeFortuneRates(rates) {
+    const arr = Array.isArray(rates) ? rates : [];
+    const out = [];
+    for (let i = 0; i < 10; i++) {
+      const v = arr[i];
+      if (v == null || v === '') {
+        out.push(null);
+      } else if (typeof v === 'string') {
+        out.push(v);
+      } else if (typeof v === 'number' && !isNaN(v)) {
+        // Old number format → percentage string (no FP-noise)
+        let s = (v * 100).toFixed(6);
+        // Strip trailing zeros down to ≥2 decimal places
+        while (s.includes('.') && s.endsWith('0') && s.split('.')[1].length > 2) {
+          s = s.slice(0, -1);
+        }
+        out.push(s);
+      } else {
+        out.push(null);
+      }
+    }
+    return out;
+  },
+
   // Update Fortune inputs from d.fortune_rates (used by Copy From / Clear All)
   _refreshFortuneInputs(tbody, d) {
     for (let i = 0; i < 10; i++) {
       const tr = tbody.rows[i];
       const inp = tr.querySelector('.pdet-inp--rate');
-      if (inp) inp.value = this._formatPct(d.fortune_rates[i]);
+      if (inp) inp.value = d.fortune_rates[i] != null ? d.fortune_rates[i] : '';
     }
   },
 
@@ -334,14 +364,20 @@ const PolicyDetail = {
   },
 
   _recalcRow(tr, d, i) {
-    const fortune = d.fortune_rates[i];
+    // d.fortune_rates[i] is the typed percentage string ("6.720", "5.5", null)
+    const fortuneStr = d.fortune_rates[i];
+    let fortune = null;
+    if (fortuneStr != null && fortuneStr !== '') {
+      const parsed = parseFloat(fortuneStr);
+      if (!isNaN(parsed)) fortune = parsed / 100;
+    }
     const ocean   = fortune != null ? fortune * 0.78 : null;
     const trBasic = fortune != null ? fortune * d.basic_commission_rate : null;
 
-    // Match precision of the Fortune input: 3dp if user entered 3+ decimals, else 2dp
-    const fortuneInp = tr.querySelector('.pdet-inp--rate');
-    const raw = fortuneInp ? fortuneInp.value : '';
-    const decimals = raw.includes('.') ? raw.split('.')[1].length : 0;
+    // Detect precision directly from the typed string: 3dp if ≥3 decimals, else 2dp
+    const decimals = (fortuneStr && fortuneStr.includes('.'))
+      ? fortuneStr.split('.')[1].length
+      : 0;
     const precision = decimals >= 3 ? 3 : 2;
 
     const fmt = v => v != null ? (v * 100).toFixed(precision) + '%' : '—';
