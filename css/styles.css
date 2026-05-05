@@ -2376,7 +2376,7 @@ td.prospect-pending {
   border-collapse: collapse;
   width: 100%;
   font-size: 12px;
-  table-layout: fixed;
+  table-layout: auto;
   white-space: nowrap;
 }
 
@@ -2420,11 +2420,11 @@ td.prospect-pending {
 .pdet-payment-row:nth-child(odd)  td { background: var(--white); }
 .pdet-payment-row:hover td { background: #eef6f9; }
 
-/* Column-specific styles */
-.pay-col-num    { width: 56px;  text-align: center; font-weight: 600; }
-.pay-col-period { width: 122px; text-align: center; font-family: monospace; font-size: 11px; }
-.pay-col-amt    { width: 92px;  text-align: right; font-variant-numeric: tabular-nums; }
-.pay-col-date   { width: 122px; text-align: center; }
+/* Column alignment + minimum widths (auto layout grows each column to fit content) */
+.pay-col-num    { min-width: 50px;  text-align: center; font-weight: 600; }
+.pay-col-period { min-width: 100px; text-align: center; font-family: monospace; font-size: 11px; }
+.pay-col-amt    { min-width: 80px;  text-align: right; font-variant-numeric: tabular-nums; }
+.pay-col-date   { min-width: 110px; text-align: center; }
 
 .pdet-pay-amt {
   font-weight: 500;
@@ -2432,9 +2432,8 @@ td.prospect-pending {
 }
 
 .pdet-pay-date input[type="date"] {
-  width: 100%;
   font-size: 11px;
-  padding: 3px 2px;
+  padding: 3px 4px;
   min-width: 0;
 }
 
