@@ -179,6 +179,11 @@ const App = {
       this.setActiveNav("policies");
       mainContent.classList.remove("main-content--fit-org");
       Policies.render(mainContent, { members: this._members });
+    } else if (hash.startsWith("#policy/")) {
+      this.setActiveNav("policies");
+      mainContent.classList.remove("main-content--fit-org");
+      const policyId = decodeURIComponent(hash.slice("#policy/".length));
+      PolicyDetail.render(mainContent, policyId, { members: this._members });
     } else {
       window.location.hash = "#orgchart";
     }

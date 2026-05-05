@@ -129,6 +129,27 @@ const DataService = {
     return { error: null };
   },
 
+  /**
+   * Fetch a single policy by id.
+   */
+  async fetchPolicy(id) {
+    const res = await supabase.from("policies").select("*").eq("id", id).single();
+    if (res.error) return { data: null, error: res.error.message };
+    return { data: res.data, error: null };
+  },
+
+  /**
+   * Save commission data for a policy (basic_commission_rate, total_payments, fortune_rates).
+   */
+  async saveCommission(policyId, { basic_commission_rate, total_payments, fortune_rates }) {
+    const { error } = await supabase
+      .from("policies")
+      .update({ basic_commission_rate, total_payments, fortune_rates })
+      .eq("id", policyId);
+    if (error) return { error: error.message };
+    return { error: null };
+  },
+
   // ─────────────────────────────────────────────────────────────────────────
 
   /**

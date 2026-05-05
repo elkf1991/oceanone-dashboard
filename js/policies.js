@@ -288,7 +288,15 @@ const Policies = {
     cells.forEach(([cls, val]) => {
       const td = document.createElement('td');
       td.className = cls;
-      td.textContent = val;
+      if (cls === 'pol-col-polno' && val && p.id) {
+        const a = document.createElement('a');
+        a.href = '#policy/' + encodeURIComponent(p.id);
+        a.className = 'pol-polno-link';
+        a.textContent = val;
+        td.appendChild(a);
+      } else {
+        td.textContent = val;
+      }
       tr.appendChild(td);
     });
 

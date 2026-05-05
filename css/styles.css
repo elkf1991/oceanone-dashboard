@@ -2041,6 +2041,19 @@ td.prospect-pending {
   text-align: right;
 }
 
+/* Policy number link */
+.pol-polno-link {
+  color: var(--ocean-mid);
+  text-decoration: none;
+  font-weight: 600;
+  border-bottom: 1px dotted var(--ocean-light);
+  cursor: pointer;
+}
+.pol-polno-link:hover {
+  color: var(--ocean-deep);
+  border-bottom-style: solid;
+}
+
 /* ── Action buttons ── */
 .pol-col-act {
   white-space: nowrap;
@@ -2068,6 +2081,193 @@ td.prospect-pending {
   font-size: 16px;
   opacity: 0.85;
 }
+
+/* ============================================
+   Policy Detail / Commission Page
+   ============================================ */
+
+.pdet-page {
+  max-width: 800px;
+  padding-bottom: 40px;
+}
+
+.pdet-loading,
+.pdet-error {
+  padding: 40px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+.pdet-error { color: #b91c1c; }
+
+/* ── Info grid ── */
+.pdet-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+  padding: 20px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.pdet-info-item {}
+
+.pdet-info-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+}
+
+.pdet-info-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.pdet-info-value--input {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── Shared input styles ── */
+.pdet-inp {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--text);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 8px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.pdet-inp:focus {
+  border-color: var(--ocean-light);
+  box-shadow: 0 0 0 2px rgba(45, 156, 180, 0.15);
+}
+
+.pdet-inp--sm  { width: 80px; text-align: right; }
+.pdet-inp--rate { width: 72px; text-align: right; }
+
+.pdet-inp-sfx {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.pdet-inp-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: 6px;
+}
+
+/* ── Commission Rate table ── */
+.pdet-table-section {
+  margin-bottom: 24px;
+}
+
+.pdet-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ocean-deep);
+  margin-bottom: 12px;
+}
+
+.pdet-table-wrap {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.pdet-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+}
+
+.pdet-table thead {
+  background: var(--ocean-deep);
+}
+
+.pdet-table thead th {
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  text-align: center;
+}
+
+.pdet-table thead th.pdet-col-year {
+  text-align: left;
+  width: 90px;
+}
+
+.pdet-col-year {
+  padding: 8px 14px;
+  font-weight: 600;
+  color: var(--text);
+  width: 90px;
+}
+
+.pdet-col-rate {
+  padding: 6px 14px;
+  text-align: center;
+}
+
+.pdet-year-row:nth-child(even) td { background: #f6f9fb; }
+.pdet-year-row:nth-child(odd)  td { background: var(--white); }
+
+.pdet-year-row td {
+  border-bottom: 1px solid var(--border);
+}
+
+.pdet-year-row:last-child td {
+  border-bottom: none;
+}
+
+/* Auto-calculated cells */
+.pdet-auto {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Fortune input wrapper (input + % sign) */
+.pdet-rate-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  justify-content: center;
+}
+
+/* ── Save button ── */
+.pdet-save-wrap {
+  margin-top: 24px;
+}
+
+.pdet-save-btn {
+  padding: 10px 32px;
+  background: var(--ocean-deep);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.pdet-save-btn:hover    { background: var(--ocean-mid); }
+.pdet-save-btn:disabled { opacity: 0.6; cursor: default; }
 
 /* ============================================
    Responsive — Mobile
