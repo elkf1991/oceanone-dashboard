@@ -70,6 +70,7 @@ const PayrollDetail = {
 
     // Compute pending rows
     const rows = this._computeRows(policies, introducer, payrollMonth);
+    const total = rows.reduce((sum, r) => sum + r.amount, 0);
 
     if (rows.length === 0) {
       const empty = document.createElement('p');
@@ -95,9 +96,7 @@ const PayrollDetail = {
     </thead>`;
 
     const tbody = document.createElement('tbody');
-    let total = 0;
     rows.forEach(r => {
-      total += r.amount;
       const tr = document.createElement('tr');
 
       const descTd = document.createElement('td');
@@ -136,7 +135,95 @@ const PayrollDetail = {
     tableWrap.appendChild(table);
     wrapper.appendChild(tableWrap);
 
+    // ── Generate Payslip button ─────────────────────────────────────────────
+    const btnWrap = document.createElement('div');
+    btnWrap.className = 'paydet-generate-wrap';
+    const generateBtn = document.createElement('button');
+    generateBtn.className = 'paydet-generate-btn';
+    generateBtn.innerHTML = '⬇ Generate Payslip';
+    generateBtn.addEventListener('click', () => {
+      this._generatePayslip({
+        staffName, staffId, payrollMonth, introducer, rows, total, button: generateBtn,
+      });
+    });
+    btnWrap.appendChild(generateBtn);
+    wrapper.appendChild(btnWrap);
+
     container.appendChild(wrapper);
+  },
+
+  // ─── Payslip generation ─────────────────────────────────────────────────────
+
+  async _generatePayslip({ staffName, staffId, payrollMonth, introducer, rows, total, button }) {
+    if (typeof window.PizZip === 'undefined' || typeof window.docxtemplater === 'undefined') {
+      alert('Document libraries not loaded yet. Please refresh the page and try again.');
+      return;
+    }
+
+    const originalLabel = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = 'Generating…';
+
+    try {
+      // Fetch the template from the dashboard's templates folder
+      const res = await fetch('templates/payslip-template.docx', { cache: 'no-store' });
+      if (!res.ok) throw new Error(`Could not load template (HTTP ${res.status})`);
+      const arrayBuffer = await res.arrayBuffer();
+
+      const zip = new PizZip(arrayBuffer);
+      const Doc = window.docxtemplater.default || window.docxtemplater;
+      const doc = new Doc(zip, {
+        paragraphLoop: true,
+        linebreaks:    true,
+      });
+
+      const fmt = v => Number(v).toLocaleString('en-HK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      doc.render({
+        staff_name:    staffName    || introducer || '',
+        staff_id:      staffId != null && staffId !== '—' ? String(staffId) : '',
+        position:      'Business Introducer',
+        payslip_month: payrollMonth || '',
+        items: rows.map(r => ({
+          description: r.description,
+          period:      r.period,
+          fee:         fmt(r.amount),
+        })),
+        total: fmt(total),
+      });
+
+      const blob = doc.getZip().generate({
+        type: 'blob',
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      });
+
+      const safeName = (staffName || introducer || 'Payslip')
+        .replace(/[^\w\s-]/g, '').replace(/\s+/g, '_');
+      const fileName = `OceanOne_Payslip_${safeName}_${payrollMonth}.docx`;
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      button.innerHTML = '✓ Generated';
+      setTimeout(() => { button.innerHTML = originalLabel; button.disabled = false; }, 2000);
+    } catch (err) {
+      console.error('Payslip generation error:', err);
+      let msg = 'Failed to generate payslip.\n\n';
+      if (err && err.properties && Array.isArray(err.properties.errors) && err.properties.errors.length) {
+        msg += err.properties.errors.map(e => `• ${e.message}${e.properties && e.properties.context ? ` (near: ${e.properties.context})` : ''}`).join('\n');
+      } else {
+        msg += err && err.message ? err.message : String(err);
+      }
+      alert(msg);
+      button.innerHTML = originalLabel;
+      button.disabled = false;
+    }
   },
 
   // ─── Lookup helpers ─────────────────────────────────────────────────────────

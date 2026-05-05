@@ -2688,6 +2688,32 @@ td.prospect-pending {
   color: var(--ocean-deep);
 }
 
+/* Generate Payslip button */
+.paydet-generate-wrap {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.paydet-generate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  background: var(--ocean-deep);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.paydet-generate-btn:hover    { background: var(--ocean-mid); }
+.paydet-generate-btn:disabled { opacity: 0.7; cursor: default; }
+
 /* ============================================
    Responsive — Mobile
    ============================================ */
