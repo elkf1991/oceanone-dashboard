@@ -24,9 +24,11 @@ const Exam = {
       "<p>Paper 1 &amp; Paper 3 exam progress · 各人考試及上牌進度</p>";
     wrapper.appendChild(header);
 
-    // Active members sorted by sortOrder
+    // Only Active members who have completed L3, sorted by sortOrder
     const rows = Object.values(members)
-      .filter((m) => activeIds.has(m.id))
+      .filter((m) => activeIds.has(m.id)
+                  && Array.isArray(m.trainingCompleted)
+                  && m.trainingCompleted.includes("L3"))
       .sort((a, b) => (a.sortOrder ?? 999) - (b.sortOrder ?? 999));
 
     const tableWrap = document.createElement("div");
