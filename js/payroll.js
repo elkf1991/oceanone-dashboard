@@ -9,6 +9,7 @@ const Payroll = {
   _container:      null,
   _policies:       [],
   _selectedMonth:  null,
+  _handledSet:     null,    // Set<introducer> for currently-selected month
 
   // ─── Public: render ─────────────────────────────────────────────────────────
 
@@ -27,7 +28,15 @@ const Payroll = {
     const now = new Date();
     this._selectedMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
 
+    // Load handled set for the default month
+    await this._loadHandled(this._selectedMonth);
+
     this._draw();
+  },
+
+  async _loadHandled(month) {
+    const { data, error } = await DataService.fetchPayrollHandled(month);
+    this._handledSet = new Set(error ? [] : (data || []));
   },
 
   // ─── Drawing ────────────────────────────────────────────────────────────────
@@ -72,8 +81,9 @@ const Payroll = {
     tableContainer.className = 'payroll-table-container';
     wrapper.appendChild(tableContainer);
 
-    select.addEventListener('change', () => {
+    select.addEventListener('change', async () => {
       this._selectedMonth = select.value;
+      await this._loadHandled(this._selectedMonth);
       this._renderTable(tableContainer);
     });
 
@@ -124,6 +134,7 @@ const Payroll = {
         <th class="payroll-col-amt">Total Pending (HKD)</th>
         <th class="payroll-col-count">Payments</th>
         <th class="payroll-col-act"></th>
+        <th class="payroll-col-tick">Done</th>
       </tr>
     </thead>`;
 
@@ -134,6 +145,8 @@ const Payroll = {
       grandTotal += info.total;
       const tr = document.createElement('tr');
       tr.className = 'payroll-row';
+      const isHandled = this._handledSet && this._handledSet.has(introducer);
+      if (isHandled) tr.classList.add('payroll-row--handled');
 
       const nameTd = document.createElement('td');
       nameTd.className = 'payroll-col-name';
@@ -162,6 +175,33 @@ const Payroll = {
       actTd.appendChild(btn);
       tr.appendChild(actTd);
 
+      // Tick button — toggle handled state
+      const tickTd = document.createElement('td');
+      tickTd.className = 'payroll-col-tick';
+      const tickBtn = document.createElement('button');
+      tickBtn.type = 'button';
+      tickBtn.className = 'payroll-tick-btn';
+      tickBtn.title = isHandled ? 'Mark as not done' : 'Mark as done';
+      tickBtn.textContent = isHandled ? '✓' : '○';
+      if (isHandled) tickBtn.classList.add('payroll-tick-btn--on');
+      tickBtn.addEventListener('click', async () => {
+        const currentlyHandled = this._handledSet.has(introducer);
+        const next = !currentlyHandled;
+        tickBtn.disabled = true;
+        const { error } = await DataService.setPayrollHandled(this._selectedMonth, introducer, next);
+        tickBtn.disabled = false;
+        if (error) {
+          alert('Could not update: ' + error);
+          return;
+        }
+        if (next) this._handledSet.add(introducer);
+        else      this._handledSet.delete(introducer);
+        // Re-render the table so the row tinting + tick state stay consistent
+        this._renderTable(container);
+      });
+      tickTd.appendChild(tickBtn);
+      tr.appendChild(tickTd);
+
       tbody.appendChild(tr);
     });
 
@@ -179,7 +219,7 @@ const Payroll = {
     totalTr.appendChild(totalAmt);
 
     const totalSpacer = document.createElement('td');
-    totalSpacer.colSpan = 2;
+    totalSpacer.colSpan = 3;
     totalTr.appendChild(totalSpacer);
 
     tbody.appendChild(totalTr);

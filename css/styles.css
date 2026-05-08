@@ -2589,6 +2589,61 @@ td.prospect-pending {
 
 .payroll-detail-btn:hover { background: var(--ocean-mid); }
 
+/* Done tick column */
+.payroll-col-tick { width: 60px; text-align: center; }
+
+.payroll-tick-btn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+}
+
+.payroll-tick-btn:hover {
+  border-color: #16a34a;
+  color: #16a34a;
+}
+
+.payroll-tick-btn--on {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: var(--white);
+}
+
+.payroll-tick-btn--on:hover {
+  background: #15803d;
+  border-color: #15803d;
+}
+
+.payroll-tick-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Light-green tint when row is marked handled */
+.payroll-row--handled td {
+  background: #d1fae5 !important;
+}
+
+.payroll-row--handled:hover td {
+  background: #bbf7d0 !important;
+}
+
+.payroll-row--handled .payroll-col-name {
+  color: #065f46;
+}
+
 .payroll-total-row td {
   background: var(--ocean-pale);
   border-top: 2px solid var(--ocean-mid);

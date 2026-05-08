@@ -138,6 +138,44 @@ const DataService = {
     return { data: res.data, error: null };
   },
 
+  // ─── Payroll handled tracking ─────────────────────────────────────────────
+
+  /**
+   * Fetch the set of introducers whose payroll has been marked handled
+   * for a given YYYYMM month.
+   */
+  async fetchPayrollHandled(month) {
+    const { data, error } = await supabase
+      .from("payroll_handled")
+      .select("introducer")
+      .eq("payroll_month", month);
+    if (error) return { data: null, error: error.message };
+    return { data: (data || []).map(r => r.introducer), error: null };
+  },
+
+  /**
+   * Toggle handled state for (month, introducer).
+   * handled=true → upsert; handled=false → delete.
+   */
+  async setPayrollHandled(month, introducer, handled) {
+    if (handled) {
+      const { error } = await supabase
+        .from("payroll_handled")
+        .upsert({ payroll_month: month, introducer });
+      if (error) return { error: error.message };
+    } else {
+      const { error } = await supabase
+        .from("payroll_handled")
+        .delete()
+        .eq("payroll_month", month)
+        .eq("introducer", introducer);
+      if (error) return { error: error.message };
+    }
+    return { error: null };
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+
   /**
    * Save commission data for a policy. Accepts any subset of:
    *   basic_commission_rate, total_payments, fortune_rates,
